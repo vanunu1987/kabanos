@@ -100,6 +100,30 @@ export function replaceField(mapping: Mapping, path: string, def: FieldDef): Map
   return next
 }
 
+/** Remove a field (with its children / multi-fields), or a multi-field like `title.raw`. */
+export function removeField(mapping: Mapping, path: string): Mapping {
+  const next = structuredClone(mapping)
+  const parts = path.split('.').filter(Boolean)
+  const name = parts.at(-1)
+  const parent = getField(next, parts.slice(0, -1).join('.'))
+  if (name && parent?.fields?.[name]) {
+    delete parent.fields[name]
+    if (!Object.keys(parent.fields).length) delete parent.fields
+    return next
+  }
+  const props = parts.length === 1 ? next.properties : parent?.properties
+  if (!name || !props?.[name]) throw new Error(`${path} not found`)
+  delete props[name]
+  // Drop object parents the removal left empty (seller.phone was seller's only field).
+  for (let i = parts.length - 1; i > 0; i--) {
+    const p = getField(next, parts.slice(0, i).join('.'))
+    if (!p || p.type || Object.keys(p.properties ?? {}).length) break
+    const holder = i === 1 ? next.properties : getField(next, parts.slice(0, i - 1).join('.'))?.properties
+    delete holder?.[parts[i - 1]!]
+  }
+  return next
+}
+
 export function getField(mapping: Mapping, path: string): FieldDef | undefined {
   if (!path) return undefined
   let props = mapping.properties

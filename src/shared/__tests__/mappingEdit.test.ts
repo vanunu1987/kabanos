@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addField, copyableSettings, diffMappings, nextIndexName, reindexRoutine, replaceField, type Mapping } from '../mappingEdit'
+import { addField, copyableSettings, diffMappings, nextIndexName, reindexRoutine, replaceField, type Mapping, removeField } from '../mappingEdit'
 
 const base: Mapping = {
   properties: {
@@ -72,5 +72,22 @@ describe('reindex routine', () => {
       { remove: { index: '{{source}}', alias: 'listings' } },
       { add: { index: '{{target}}', alias: 'listings', is_write_index: true } }
     ])
+  })
+})
+
+describe('removeField', () => {
+  const m = { properties: { title: { type: 'text', fields: { raw: { type: 'keyword' } } }, seller: { properties: { name: { type: 'keyword' }, phone: { type: 'keyword' } } } } }
+  it('removes top-level, nested and multi-fields without touching the input', () => {
+    expect(removeField(m, 'seller.phone').properties!.seller!.properties).toEqual({ name: { type: 'keyword' } })
+    expect(removeField(m, 'title.raw').properties!.title).toEqual({ type: 'text' })
+    expect(Object.keys(removeField(m, 'seller').properties!)).toEqual(['title'])
+    expect(m.properties.seller.properties.phone).toBeDefined()
+    // An object left empty goes too.
+    const lone = { properties: { a: { properties: { b: { properties: { c: { type: 'keyword' } } } } }, d: { type: 'long' } } }
+    expect(removeField(lone, 'a.b.c')).toEqual({ properties: { d: { type: 'long' } } })
+  })
+  it('throws for unknown fields', () => {
+    expect(() => removeField(m, 'nope')).toThrow('nope not found')
+    expect(() => removeField(m, 'seller.nope')).toThrow('seller.nope not found')
   })
 })

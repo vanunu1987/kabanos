@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { addField, copyableSettings, diffMappings, FIELD_TYPES, getField, nextIndexName, reindexRoutine, replaceField, type FieldDef, type Mapping, type MappingDiff } from '@shared/mappingEdit'
-import type { IndexDetail } from '@shared/meta'
+import type { FieldInfo, IndexDetail } from '@shared/meta'
 import type { ConnectionConfig } from '@shared/types'
 import { api, KabanosError } from '../../api'
 import { CodeEditor } from '../../components/CodeEditor'
@@ -18,6 +18,22 @@ export function MappingEditor({ conn, detail }: { conn: ConnectionConfig; detail
   const mapping = (detail.mapping ?? {}) as Mapping
   const [modal, setModal] = useState<{ kind: 'add' } | { kind: 'edit'; path: string } | { kind: 'json' } | { kind: 'reindex'; next: Mapping; diff: MappingDiff } | null>(null)
   const closed = detail.summary?.status === 'close'
+  const target: FieldTarget = {
+    kind: 'index',
+    name: detail.name,
+    fields: detail.fields,
+    analyzers: Object.keys(detail.settings).filter((k) => k.startsWith('index.analysis.analyzer.')).map((k) => k.split('.')[3]!),
+    backfill: async () => {
+      // Index existing documents into the new field (runs in the background on the cluster).
+      try {
+        const res = await api.cluster.request({ connectionId: conn.id, method: 'POST', path: `${encodeURIComponent(detail.name)}/_update_by_query?conflicts=proceed&wait_for_completion=false` })
+        const task = res.status < 400 ? (JSON.parse(res.body) as { task?: string }).task : undefined
+        useApp.getState().showToast(task ? `Re-indexing existing documents in place (task ${task}) — see Stack management → Tasks` : `_update_by_query failed: ${reason(res.body)}`)
+      } catch (e) {
+        if (!(e instanceof KabanosError && e.code === 'NOT_CONFIRMED')) useApp.getState().showToast((e as Error).message)
+      }
+    }
+  }
 
   const apply = async (next: Mapping, ok: string): Promise<string | null> => {
     try {
@@ -65,15 +81,26 @@ export function MappingEditor({ conn, detail }: { conn: ConnectionConfig; detail
           )
         }
       />
-      {modal?.kind === 'add' && <FieldModal conn={conn} detail={detail} mapping={mapping} onClose={() => setModal(null)} submit={submit} />}
-      {modal?.kind === 'edit' && <FieldModal conn={conn} detail={detail} mapping={mapping} editPath={modal.path} onClose={() => setModal(null)} submit={submit} />}
+      {modal?.kind === 'add' && <FieldModal target={target} mapping={mapping} onClose={() => setModal(null)} submit={submit} />}
+      {modal?.kind === 'edit' && <FieldModal target={target} mapping={mapping} editPath={modal.path} onClose={() => setModal(null)} submit={submit} />}
       {modal?.kind === 'json' && <JsonModal mapping={mapping} onClose={() => setModal(null)} submit={submit} />}
       {modal?.kind === 'reindex' && <ReindexModal conn={conn} detail={detail} next={modal.next} diff={modal.diff} apply={apply} onClose={() => setModal(null)} />}
     </>
   )
 }
 
-function FieldModal({ conn, detail, mapping, editPath, onClose, submit }: { conn: ConnectionConfig; detail: IndexDetail; mapping: Mapping; editPath?: string; onClose(): void; submit(next: Mapping, ok: string): Promise<string | null> }) {
+/** What the field form edits: an index's mapping or a template's. */
+export interface FieldTarget {
+  kind: 'index' | 'template'
+  name: string
+  fields: FieldInfo[]
+  /** Custom analyzers defined in the settings. */
+  analyzers: string[]
+  /** Index only: re-index existing documents into a new field. */
+  backfill?(): Promise<void>
+}
+
+export function FieldModal({ target, mapping, editPath, onClose, submit, onDelete }: { target: FieldTarget; mapping: Mapping; editPath?: string; onClose(): void; submit(next: Mapping, ok: string): Promise<string | null>; onDelete?(): void }) {
   const existing = editPath ? (getField(mapping, editPath) ?? multiField(mapping, editPath)) : undefined
   const { type: t0, properties: _p, fields: _f, ...params0 } = existing ?? {}
   const [path, setPath] = useState(editPath ?? '')
@@ -92,7 +119,7 @@ function FieldModal({ conn, detail, mapping, editPath, onClose, submit }: { conn
   const [backfill, setBackfill] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const leafFields = detail.fields.filter((f) => !f.multiField && f.type !== 'object' && f.type !== 'nested')
+  const leafFields = target.fields.filter((f) => !f.multiField && f.type !== 'object' && f.type !== 'nested')
 
   const build = (): FieldDef => {
     const def: FieldDef = type === 'object' ? {} : { type }
@@ -127,36 +154,36 @@ function FieldModal({ conn, detail, mapping, editPath, onClose, submit }: { conn
     const err = await submit(next, editPath ? `Updated ${editPath}` : `Added ${fullPath}`)
     setBusy(false)
     if (err) return setError(err)
-    if (!editPath && backfill) {
-      // Index existing documents into the new field (runs in the background on the cluster).
-      try {
-        const res = await api.cluster.request({ connectionId: conn.id, method: 'POST', path: `${encodeURIComponent(detail.name)}/_update_by_query?conflicts=proceed&wait_for_completion=false` })
-        const task = res.status < 400 ? (JSON.parse(res.body) as { task?: string }).task : undefined
-        useApp.getState().showToast(task ? `Re-indexing existing documents in place (task ${task}) — see Stack management → Tasks` : `_update_by_query failed: ${reason(res.body)}`)
-      } catch (e) {
-        if (!(e instanceof KabanosError && e.code === 'NOT_CONFIRMED')) useApp.getState().showToast((e as Error).message)
-      }
-    }
+    if (!editPath && backfill) await target.backfill?.()
   }
 
   return (
     <Modal
-      title={editPath ? `Edit field ${editPath}` : `Add field to ${detail.name}`}
+      title={editPath ? `Edit field ${editPath}` : `Add field to ${target.name}`}
       width={560}
       onClose={onClose}
       actions={
         <>
           {error && <span className="hint error left">{error}</span>}
+          {onDelete && (
+            <button className="btn md danger" onClick={onDelete} disabled={busy}>
+              Delete field
+            </button>
+          )}
           <button className="btn md" onClick={onClose}>
             Cancel
           </button>
           <button className="btn md primary" disabled={busy || (!editPath && !path.trim())} onClick={save}>
-            {editPath ? 'Review change' : 'Add field'}
+            {editPath ? (target.kind === 'template' ? 'Save field' : 'Review change') : 'Add field'}
           </button>
         </>
       }
     >
-      {editPath ? (
+      {editPath && target.kind === 'template' ? (
+        <div className="reindex-note">
+          Template changes apply to <b>indices created from now on</b>. Existing indices keep their mapping.
+        </div>
+      ) : editPath ? (
         <div className="reindex-note">
           <b>Editing an existing field usually requires a reindex.</b> Elasticsearch can't change a field's type or analysis in place — only a few parameters (like <span className="mono">ignore_above</span>) can be
           updated. You'll see what applies before anything changes.
@@ -194,7 +221,7 @@ function FieldModal({ conn, detail, mapping, editPath, onClose, submit }: { conn
             <label htmlFor="f-an">Analyzer</label>
             <input id="f-an" className="input mono" list="analyzers" value={analyzer} onChange={(e) => setAnalyzer(e.target.value)} placeholder="standard" />
             <datalist id="analyzers">
-              {[...ANALYZERS, ...Object.keys(detail.settings).filter((k) => k.startsWith('index.analysis.analyzer.')).map((k) => k.split('.')[3]!)].map((a) => (
+              {[...ANALYZERS, ...target.analyzers].map((a) => (
                 <option key={a} value={a} />
               ))}
             </datalist>
@@ -235,7 +262,7 @@ function FieldModal({ conn, detail, mapping, editPath, onClose, submit }: { conn
         <label htmlFor="f-extra">Extra parameters (JSON)</label>
         <input id="f-extra" className="input mono" value={extra} onChange={(e) => setExtra(e.target.value)} placeholder='{"index": false}' spellCheck={false} />
       </div>
-      {!editPath && (
+      {!editPath && target.backfill && (
         <label className="check">
           <input type="checkbox" checked={backfill} onChange={(e) => setBackfill(e.target.checked)} />
           <span>
@@ -252,7 +279,7 @@ function multiField(mapping: Mapping, path: string): FieldDef | undefined {
   return getField(mapping, parts.slice(0, -1).join('.'))?.fields?.[parts.at(-1)!]
 }
 
-function JsonModal({ mapping, onClose, submit }: { mapping: Mapping; onClose(): void; submit(next: Mapping, ok: string): Promise<string | null> }) {
+export function JsonModal({ mapping, onClose, submit, title = 'Edit mapping JSON', note = "New fields are applied in place. Changing or removing existing fields needs a reindex — you'll be asked first.", saveLabel = 'Review change' }: { mapping: Mapping | Record<string, unknown>; onClose(): void; submit(next: Mapping, ok: string): Promise<string | null>; title?: string; note?: string; saveLabel?: string }) {
   const [text, setText] = useState(JSON.stringify(mapping, null, 2))
   const [error, setError] = useState<string | null>(null)
   const save = async () => {
@@ -262,12 +289,12 @@ function JsonModal({ mapping, onClose, submit }: { mapping: Mapping; onClose(): 
     } catch (e) {
       return setError(`Invalid JSON: ${(e as Error).message}`)
     }
-    const err = await submit(next, 'Mapping updated')
+    const err = await submit(next, title === 'Edit mapping JSON' ? 'Mapping updated' : 'Saved')
     if (err) setError(err)
   }
   return (
     <Modal
-      title="Edit mapping JSON"
+      title={title}
       width={760}
       onClose={onClose}
       actions={
@@ -277,12 +304,12 @@ function JsonModal({ mapping, onClose, submit }: { mapping: Mapping; onClose(): 
             Cancel
           </button>
           <button className="btn md primary" onClick={save}>
-            Review change
+            {saveLabel}
           </button>
         </>
       }
     >
-      <span className="hint">New fields are applied in place. Changing or removing existing fields needs a reindex — you'll be asked first.</span>
+      <span className="hint">{note}</span>
       <div className="editor-box" style={{ height: 440 }}>
         <CodeEditor value={text} onChange={setText} path="mapping://edit" />
       </div>

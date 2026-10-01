@@ -259,6 +259,14 @@ button.pill { cursor: pointer; }
 .kv-row span:last-child { text-align: right; overflow-wrap: anywhere; }
 .inline-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; }
 .inline-row.between { justify-content: space-between; }
+.tpl-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+.tpl-note { padding: 0 4px; }
+.alias-target { min-height: 26px; }
+.alias-target-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; opacity: 0.45; }
+.alias-target:hover .alias-target-actions, .alias-target:focus-within .alias-target-actions { opacity: 1; }
+.alias-target-actions .link-btn { padding: 2px 0; }
+.link-btn.danger:hover { color: var(--red); }
+.alias-add { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; }
 .link { border: none; background: transparent; padding: 0; color: var(--accent); font-size: 12px; text-align: left; }
 .link:hover { color: var(--accent-hover); }
 .link.left { align-self: flex-start; }
