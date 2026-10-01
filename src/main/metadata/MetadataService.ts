@@ -257,14 +257,17 @@ function toArray(v: string | string[] | undefined): string[] {
   return v === undefined ? [] : Array.isArray(v) ? v : [v]
 }
 
-function unionFields(lists: FieldInfo[][]): FieldInfo[] {
-  const seen = new Set<string>()
+export function unionFields(lists: FieldInfo[][]): FieldInfo[] {
+  const seen = new Map<string, FieldInfo>()
   const out: FieldInfo[] = []
   for (const list of lists) {
     for (const f of list) {
-      if (seen.has(f.path)) continue
-      seen.add(f.path)
-      out.push(f)
+      const first = seen.get(f.path)
+      if (!first) {
+        const copy = { ...f }
+        seen.set(f.path, copy)
+        out.push(copy)
+      } else if (first.type !== f.type && !(first.conflicts ?? []).includes(f.type)) first.conflicts = [...(first.conflicts ?? [first.type]), f.type]
     }
   }
   return out

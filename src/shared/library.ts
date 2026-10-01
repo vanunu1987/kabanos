@@ -13,11 +13,13 @@ export interface Query {
   lastStatus?: number
   lastRunAt?: string
   lastMs?: number
+  /** Aggregation pipeline (JSON of `Pipeline`) — set for items saved from the Aggregations tab; `body` holds the compiled request. */
+  pipeline?: string
   createdAt: string
   updatedAt: string
 }
 
-export type QueryPatch = Partial<Pick<Query, 'folderId' | 'title' | 'method' | 'path' | 'body' | 'tags' | 'pinned'>>
+export type QueryPatch = Partial<Pick<Query, 'folderId' | 'title' | 'method' | 'path' | 'body' | 'tags' | 'pinned' | 'pipeline'>>
 
 export interface Folder {
   id: string

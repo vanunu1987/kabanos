@@ -8,7 +8,7 @@ export interface MenuItem {
 }
 
 /** A button that opens a small dropdown of actions. */
-export function Menu({ items, label, children }: { items: Array<MenuItem | 'sep'>; label: string; children: ReactNode }) {
+export function Menu({ items, label, children, buttonClass = 'square-btn tall', align = 'right' }: { items: Array<MenuItem | 'sep'>; label: string; children: ReactNode; buttonClass?: string; align?: 'left' | 'right' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -24,11 +24,11 @@ export function Menu({ items, label, children }: { items: Array<MenuItem | 'sep'
   }, [open])
   return (
     <div className="menu-wrap" ref={ref}>
-      <button className="square-btn tall" aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className={buttonClass} aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         {children}
       </button>
       {open && (
-        <div className="menu" role="menu">
+        <div className={`menu${align === 'left' ? ' left' : ''}`} role="menu">
           {items.map((it, i) =>
             it === 'sep' ? (
               <div key={i} className="menu-sep" />

@@ -146,6 +146,10 @@ const MIGRATIONS: string[] = [
   INSERT INTO secrets_v2 SELECT connection_id, kind, blob FROM secrets;
   DROP TABLE secrets;
   ALTER TABLE secrets_v2 RENAME TO secrets;
+  `,
+  // 5: aggregation pipelines are library items too (body = compiled request, pipeline = the stages as JSON).
+  `
+  ALTER TABLE queries ADD COLUMN pipeline TEXT;
   `
 ]
 

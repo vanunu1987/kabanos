@@ -1,0 +1,21 @@
+{
+  "size": 0,
+  "query": { "bool": { "filter": [
+    { "term": { "status": "active" } },
+    { "range": { "price": { "lte": 2000000 } } }
+  ] } },
+  "aggs": {
+    "by_city": {
+      "terms": { "field": "city.name", "size": 10 },
+      "aggs": {
+        "avg_price":    { "avg": { "field": "price" } },
+        "median_price": { "percentiles": { "field": "price", "percents": [50] } },
+        "sellers":      { "cardinality": { "field": "seller_id" } },
+        "by_month":     { "date_histogram": { "field": "created_at", "calendar_interval": "month" } },
+        "keep_expensive": { "bucket_selector": {
+          "buckets_path": { "p": "avg_price" }, "script": "params.p > 1500000" } },
+        "top_5": { "bucket_sort": { "sort": [{ "avg_price": { "order": "desc" } }], "size": 5 } }
+      }
+    }
+  }
+}

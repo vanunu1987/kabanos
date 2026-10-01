@@ -1,0 +1,14 @@
+{
+  "size": 0,
+  "aggs": {
+    "price_band": {
+      "range": { "field": "price", "ranges": [{ "to": 500000 }, { "from": 500000, "to": 1500000 }, { "key": "luxury", "from": 1500000 }] },
+      "aggs": {
+        "price_stats": { "stats": { "field": "price" } },
+        "p": { "percentiles": { "field": "price", "percents": [90, 99] } },
+        "keep_busy": { "bucket_selector": { "buckets_path": { "p0": "price_stats.avg", "p1": "_count" }, "script": "params.p0 >= 1000 && params.p1 > 5" } }
+      }
+    },
+    "total_docs": { "value_count": { "field": "price" } }
+  }
+}

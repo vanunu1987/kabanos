@@ -6,6 +6,8 @@ import { Menu } from '../../components/Menu'
 import { relTime } from '../../components/time'
 import { Icon } from '../../shell/icons'
 import { useApp } from '../../store'
+import { openSavedPipeline } from '../aggregations/AggregationsTab'
+import { tabKey, useQueryTabs } from '../indexView/state'
 import { useWorkspace } from './store'
 
 export const DRAG_TYPE = 'application/x-kabanos-query'
@@ -238,6 +240,17 @@ export function LibrarySidebar() {
   )
 }
 
+/** Saved aggregation pipelines open in the index view's Aggregations tab on the active connection. */
+function openPipeline(q: Query): void {
+  const app = useApp.getState()
+  const connectionId = app.activeTab
+  if (!connectionId || !q.pipeline) return app.showToast('Open a connection first')
+  if (!openSavedPipeline(connectionId, q.id, q.pipeline)) return app.showToast('This pipeline could not be read')
+  const target = (JSON.parse(q.pipeline) as { target: string }).target
+  useQueryTabs.getState().patch(tabKey(connectionId, target), { subTab: 'aggregations' })
+  app.openQuery(connectionId, target)
+}
+
 function QueryRow({ q, depth, active, folders, onOpen, onMove }: { q: Query; depth: number; active: boolean; folders: Folder[]; onOpen(): void; onMove(folderId: string | null): void }) {
   const { bumpLibrary, patchQuery, loadBlocks } = useWorkspace.getState()
   const target = q.path.split(/[/?]/)[0]
@@ -250,13 +263,19 @@ function QueryRow({ q, depth, active, folders, onOpen, onMove }: { q: Query; dep
         e.dataTransfer.setData(DRAG_TYPE, q.id)
         e.dataTransfer.effectAllowed = 'move'
       }}
-      onClick={onOpen}
+      onClick={q.pipeline ? () => openPipeline(q) : onOpen}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onOpen()}
+      onKeyDown={(e) => e.key === 'Enter' && (q.pipeline ? openPipeline(q) : onOpen())}
       title={`${q.method} ${q.path}`}
     >
-      <span className={`lib-method mono m-${q.method.toLowerCase()}`}>{q.method}</span>
+      {q.pipeline ? (
+        <span className="lib-method mono lib-agg" title="Aggregation pipeline">
+          ∑
+        </span>
+      ) : (
+        <span className={`lib-method mono m-${q.method.toLowerCase()}`}>{q.method}</span>
+      )}
       <span className="lib-text">
         <span className="lib-name">{q.title || q.path}</span>
         <span className="lib-meta mono">
@@ -272,6 +291,7 @@ function QueryRow({ q, depth, active, folders, onOpen, onMove }: { q: Query; dep
         <Menu
           label={`Query ${q.title || q.path} actions`}
           items={[
+            ...(q.pipeline ? [{ label: 'Open in Aggregations', onSelect: () => openPipeline(q) }] : []),
             { label: 'Open in workspace', onSelect: onOpen },
             ...folders.filter((f) => f.id !== q.folderId).slice(0, 12).map((f) => ({ label: `Move to ${f.name}`, onSelect: () => onMove(f.id) })),
             ...(q.folderId ? [{ label: 'Remove from folder', onSelect: () => onMove(null) }] : []),

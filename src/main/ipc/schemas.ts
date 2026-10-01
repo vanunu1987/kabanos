@@ -70,7 +70,8 @@ export const queryPatch = z.object({
   path: z.string().max(8192).optional(),
   body: z.string().max(5_000_000).optional(),
   tags: z.array(z.string().max(100)).max(50).optional(),
-  pinned: z.boolean().optional()
+  pinned: z.boolean().optional(),
+  pipeline: z.string().max(2_000_000).optional()
 })
 
 export const libraryFilter = z.union([

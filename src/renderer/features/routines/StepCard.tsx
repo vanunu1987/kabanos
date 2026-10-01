@@ -41,9 +41,9 @@ function statusText(step: RoutineStep, r: StepResult | undefined, gate: boolean)
   return `${r.status ?? (r.outcome === 'failed' ? 'failed' : '')}${extra}`
 }
 
-function chips(step: RoutineStep, queryTitle?: string, connName?: string): string[] {
+function chips(step: RoutineStep, queryTitle?: string, connName?: string, isAgg?: boolean): string[] {
   const out: string[] = []
-  if (step.queryRef) out.push(`saved query “${queryTitle ?? '…'}”`)
+  if (step.queryRef) out.push(`saved ${isAgg ? 'pipeline' : 'query'} “${queryTitle ?? '…'}”`)
   if (step.connectionId) out.push(`on ${connName ?? 'other connection'}`)
   if (step.when) out.push(`when ${step.when}`)
   if (step.assert) out.push(`assert ${step.assert}`)
@@ -91,7 +91,7 @@ export function StepCard({ routine, step, index, result, last, paused }: { routi
           </span>
           <span className="step-line2">
             <span className="step-name">{step.name || <span className="faint">Unnamed step</span>}</span>
-            {chips(step, query?.title || query?.path, connections.find((c) => c.id === step.connectionId)?.name).map((c) => (
+            {chips(step, query?.title || query?.path, connections.find((c) => c.id === step.connectionId)?.name, !!query?.pipeline).map((c) => (
               <span key={c} className="step-chip mono">
                 {c}
               </span>
@@ -140,10 +140,10 @@ export function StepCard({ routine, step, index, result, last, paused }: { routi
               <select className="select sm" value={step.queryRef ?? ''} onChange={(e) => set({ queryRef: e.target.value || undefined })} aria-label="Request source">
                 <option value="">Inline request</option>
                 {(library.data ?? [])
-                  .filter((q) => q.folderId !== null)
+                  .filter((q) => q.folderId !== null || q.pipeline)
                   .map((q) => (
                     <option key={q.id} value={q.id}>
-                      Saved: {q.title || q.path}
+                      {q.pipeline ? '∑ Pipeline' : 'Saved'}: {q.title || q.path}
                     </option>
                   ))}
               </select>

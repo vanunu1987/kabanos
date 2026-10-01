@@ -1,4 +1,7 @@
 import { randomUUID } from 'node:crypto'
+import { compile } from '@shared/aggregations/compiler'
+import { flatten, type Row } from '@shared/aggregations/flatten'
+import { isPipeline } from '@shared/aggregations/model'
 import jsonata from 'jsonata'
 import { classifyRequest } from '@shared/destructive'
 import { substituteVars } from '@shared/library'
@@ -229,6 +232,10 @@ export class RoutineRunner {
     }
 
     Object.assign(result, { status: res.status, ms: res.ms, response: truncate(res.body), attempts })
+    // A saved aggregation pipeline also exposes its flattened rows: steps.<id>.rows[0].avg_price
+    const pipelineJson = 'pipeline' in source && typeof source.pipeline === 'string' ? source.pipeline : undefined
+    const rows = res.status < 400 && pipelineJson ? pipelineRows(pipelineJson, parsed) : undefined
+    if (rows) parsed = { ...(parsed as object), rows }
     if (res.status >= 400) {
       result.outcome = 'failed'
       result.message = `HTTP ${res.status}: ${errorReason(parsed) ?? res.body.slice(0, 160)}`
@@ -241,8 +248,9 @@ export class RoutineRunner {
       log('error', `✗ ${step.name} → ${result.message}`)
       return
     }
+    if (rows) run.captured[step.id] = { rows }
     if (step.capture && Object.keys(step.capture).length) {
-      const values: Record<string, unknown> = {}
+      const values: Record<string, unknown> = rows ? { rows } : {}
       for (const [name, expr] of Object.entries(step.capture)) values[name] = await evaluate(expr, parsed, ctx)
       run.captured[step.id] = values
       result.captured = values
@@ -251,6 +259,18 @@ export class RoutineRunner {
     result.outcome = 'ok'
     result.message = undefined
     log('ok', `✓ ${step.name} → ${res.status} · ${res.ms} ms${attempts > 1 ? ` · ${attempts} polls` : ''}`)
+  }
+}
+
+const MAX_ROWS = 1000
+
+function pipelineRows(pipelineJson: string, response: unknown): Row[] | undefined {
+  try {
+    const pipeline = JSON.parse(pipelineJson) as unknown
+    if (!isPipeline(pipeline) || !response || typeof response !== 'object') return undefined
+    return flatten(response as Record<string, unknown>, compile(pipeline)).rows.slice(0, MAX_ROWS)
+  } catch {
+    return undefined
   }
 }
 

@@ -1,0 +1,16 @@
+{
+  "size": 0,
+  "query": { "bool": { "filter": [{ "range": { "created_at": { "gte": "now-1y" } } }], "must_not": [{ "term": { "status": "deleted" } }] } },
+  "aggs": {
+    "by_month": {
+      "date_histogram": { "field": "created_at", "calendar_interval": "month", "min_doc_count": 0 },
+      "aggs": {
+        "revenue": { "sum": { "field": "price" } },
+        "running_revenue": { "cumulative_sum": { "buckets_path": "revenue" } },
+        "revenue_change": { "derivative": { "buckets_path": "revenue" } },
+        "growth_diff": { "derivative": { "buckets_path": "revenue" } },
+        "growth": { "bucket_script": { "buckets_path": { "d": "growth_diff", "v": "revenue" }, "script": "params.d / (params.v - params.d) * 100" } }
+      }
+    }
+  }
+}

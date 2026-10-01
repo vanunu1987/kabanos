@@ -1,0 +1,6 @@
+{
+  "size": 25,
+  "from": 50,
+  "query": { "bool": { "filter": [{ "match": { "title": "garden" } }, { "range": { "price": { "lt": 3000000 } } }] } },
+  "sort": [{ "created_at": { "order": "desc" } }]
+}

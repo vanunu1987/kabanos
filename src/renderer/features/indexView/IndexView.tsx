@@ -24,12 +24,14 @@ import { SaveQueryModal } from '../workspace/SaveQueryModal'
 import { useWorkspace } from '../workspace/store'
 import { closePit, openPit, pitPage, type PitPage } from './pit'
 import { ResultsTable } from './ResultsTable'
+import { AggregationsTab } from '../aggregations/AggregationsTab'
 import { ENDPOINTS, METHODS, tabKey, useQueryTabs, type QueryTabState, type SubTab } from './state'
 
 const VIEW_LABEL = { documents: 'Documents', table: 'Table', json: 'JSON' } as const
 
 const SUBTABS: Array<[SubTab, string]> = [
   ['query', 'Query'],
+  ['aggregations', 'Aggregations'],
   ['documents', 'Documents'],
   ['mapping', 'Mapping'],
   ['aliases', 'Aliases'],
@@ -120,6 +122,8 @@ function TargetPane({ conn, target }: { conn: ConnectionConfig; target: string }
       </div>
       {state.subTab === 'query' ? (
         <QueryTab conn={conn} target={target} state={state} patch={patch} />
+      ) : state.subTab === 'aggregations' ? (
+        <AggregationsTab conn={conn} target={target} docs={info?.docs} />
       ) : state.subTab === 'documents' ? (
         <DocsBrowser conn={conn} target={target} />
       ) : state.subTab === 'mapping' ? (

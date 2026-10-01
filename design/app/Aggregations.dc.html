@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aggregation pipeline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit}
+a{color:#F2B544}a:hover{color:#FFD27A}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
+.ab{width:44px;height:44px;border:none;border-radius:10px;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center}
+.ab.on{background:#232832;color:#F2B544}
+.tk{color:#9CC4FF}.ts{color:#E7C58B}.tn{color:#C7A2FF}.tp{color:#7C8595}.kw{color:#F2B544}
+.fld{height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;border:1px solid #2A2F39;border-radius:7px;background:#121419;font-size:12.5px;white-space:nowrap}
+.lbl{font-size:11.5px;color:#8B94A3;width:92px;flex-shrink:0}
+.num{width:24px;height:24px;border-radius:12px;background:#2B2512;color:#F2B544;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.g{display:inline-block;width:30px;text-align:center;color:#F2B544;font-size:11px}
+</style>
+</helmet>
+<div style="width:1440px;height:1080px;background:#121419;color:#E6E8EC;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="height:46px;flex-shrink:0;display:flex;align-items:center;gap:20px;padding:0 14px;background:#0E1014;border-bottom:1px solid #262A33">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:12px;height:12px;border-radius:6px;background:#FF5F57"></span><span style="width:12px;height:12px;border-radius:6px;background:#FEBC2E"></span><span style="width:12px;height:12px;border-radius:6px;background:#28C840"></span></div>
+<div style="display:flex;align-items:center;gap:4px;margin-left:8px">
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:#20242C;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#F2B544"></span><span style="font-weight:500">Search · Production</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#2B2512;color:#F2B544">ES 8.15</span></button>
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#9AA3B2;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#4DC4D6"></span><span>Logs · OpenSearch</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#10272B;color:#4DC4D6">OS 2.17</span></button>
+</div>
+<div style="flex-grow:1"></div>
+<button style="width:320px;height:30px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#8B94A3;display:flex;align-items:center;gap:8px;padding:0 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex-grow:1;text-align:left">Jump to index, query, routine…</span><span class="mono" style="font-size:11px">⌘K</span></button>
+</div>
+
+<div style="flex-grow:1;display:flex;min-height:0">
+<nav aria-label="Main" style="width:64px;flex-shrink:0;background:#0E1014;border-right:1px solid #262A33;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0">
+<button class="ab" aria-label="Connections"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0zM12 16v5"></path></svg></button>
+<button class="ab on" aria-label="Explorer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path></svg></button>
+<button class="ab" aria-label="Query workspace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg></button>
+<button class="ab" aria-label="Routines"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"></path><path d="M16 15l5 3-5 3z"></path></svg></button>
+<button class="ab" aria-label="Stack management"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></button>
+<div style="flex-grow:1"></div>
+<button class="ab" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+</nav>
+
+<main style="flex-grow:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="padding:12px 24px 0;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid #262A33">
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8B94A3"><span>search-prod</span><span>›</span><span>Indices</span><span>›</span><span class="mono" style="color:#E6E8EC">listings-v7</span><span style="margin-left:6px">12,418,203 docs</span></div>
+<div role="tablist" style="display:flex;gap:22px">
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Query</button>
+<button role="tab" aria-selected="true" style="border:none;background:transparent;padding:6px 0 10px;border-bottom:2px solid #F2B544;font-weight:500">Aggregations</button>
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Documents</button>
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Mapping</button>
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Aliases</button>
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Settings</button>
+</div>
+</div>
+
+<div style="height:56px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 24px;border-bottom:1px solid #262A33">
+<span style="font-weight:600;font-size:14px">Expensive cities</span>
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:#F2B544;color:#1A1405;font-weight:600;font-size:12.5px">Save</button>
+<button style="height:30px;padding:0 12px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;font-size:12.5px">New pipeline</button>
+<button style="height:30px;padding:0 12px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;font-size:12.5px">Export results</button>
+<button style="height:30px;padding:0 12px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;font-size:12.5px">Copy as cURL</button>
+<div style="flex-grow:1"></div>
+<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#C9CFD9"><span style="width:32px;height:18px;border-radius:9px;background:#F2B544;position:relative;display:inline-block"><span style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:7px;background:#1A1405"></span></span>Live preview</label>
+<div role="tablist" aria-label="Pipeline view" style="display:flex;padding:3px;gap:2px;border-radius:9px;background:#0E1014;border:1px solid #262A33">
+<sc-for list="{{views}}" as="v" hint-placeholder-count="3">
+<button role="tab" aria-selected="{{v.selected}}" onClick="{{v.pick}}" style="{{v.style}}">{{v.label}}</button>
+</sc-for>
+</div>
+<button style="height:30px;padding:0 12px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;font-size:12.5px">Profile</button>
+<button style="height:30px;padding:0 14px;border:none;border-radius:7px;background:#F2B544;color:#1A1405;font-weight:600;font-size:12.5px;display:flex;align-items:center;gap:6px"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Run</button>
+</div>
+
+<div style="flex-shrink:0;display:flex;align-items:center;gap:6px;padding:10px 24px;border-bottom:1px solid #262A33;background:#0F1115;overflow:hidden">
+<span style="font-size:11.5px;color:#8B94A3;margin-right:4px">Flow</span>
+<sc-for list="{{flow}}" as="f" hint-placeholder-count="7">
+<span style="display:flex;align-items:center;gap:6px">
+<span style="{{f.style}}"><span style="color:#8B94A3">{{f.label}}</span><span class="mono" style="font-weight:500">{{f.value}}</span></span>
+<sc-if value="{{f.arrow}}" hint-placeholder-val="{{true}}"><span style="color:#4E5563">→</span></sc-if>
+</span>
+</sc-for>
+</div>
+
+<sc-if value="{{isStages}}" hint-placeholder-val="{{true}}">
+<div style="flex-grow:1;min-height:0;overflow:hidden;padding:14px 24px;display:flex;flex-direction:column;gap:10px">
+
+<section style="border:1px solid #262A33;border-radius:10px;background:#16191F;display:grid;grid-template-columns:520px minmax(0, 1fr)">
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;border-right:1px solid #262A33">
+<div style="display:flex;align-items:center;gap:10px"><span class="num">1</span><button class="fld" style="font-weight:600">Filter<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button><span style="font-size:12px;color:#8B94A3">which documents go in</span><span style="margin-left:auto;display:flex;gap:10px;font-size:12px;color:#9AA3B2"><button style="border:none;background:transparent;padding:0">&lt;/&gt; JSON</button><button style="border:none;background:transparent;padding:0">Disable</button><button aria-label="Delete stage" style="border:none;background:transparent;padding:0">✕</button></span></div>
+<div style="display:flex;align-items:center;gap:6px"><span class="lbl">Match all of</span><span class="fld mono">status</span><span class="fld">is</span><span class="fld mono ts">"active"</span></div>
+<div style="display:flex;align-items:center;gap:6px"><span class="lbl"></span><span class="fld mono">price</span><span class="fld">≤</span><span class="fld mono tn">2,000,000</span></div>
+<button style="align-self:flex-start;margin-left:98px;border:none;background:transparent;padding:0;color:#F2B544;font-size:12px">+ Condition</button>
+</div>
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8B94A3">Output after stage 1 <span style="color:#E6E8EC;font-weight:600" class="mono">48,213</span> documents · sample of 3</div>
+<div style="display:flex;gap:8px;overflow:hidden">
+<sc-for list="{{docs}}" as="d" hint-placeholder-count="3">
+<div class="mono" style="flex:1 1 0;min-width:0;padding:8px 10px;border:1px solid #262A33;border-radius:8px;background:#121419;font-size:11.5px;line-height:18px;white-space:nowrap;overflow:hidden">
+<div><span class="tk">city.name</span>: <span class="ts">{{d.city}}</span></div>
+<div><span class="tk">price</span>: <span class="tn">{{d.price}}</span></div>
+<div><span class="tk">seller_id</span>: <span class="tn">{{d.seller}}</span></div>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+
+<section style="border:1px solid #F2B544;border-radius:10px;background:#16191F;display:grid;grid-template-columns:520px minmax(0, 1fr)">
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;border-right:1px solid #262A33">
+<div style="display:flex;align-items:center;gap:10px"><span class="num">2</span><button class="fld" style="font-weight:600">Group by<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button><span class="mono" style="font-size:11px;padding:2px 6px;border-radius:5px;background:#232832;color:#9AA3B2">terms</span><span style="margin-left:auto;display:flex;gap:10px;font-size:12px;color:#9AA3B2"><button style="border:none;background:transparent;padding:0">&lt;/&gt; JSON</button><button style="border:none;background:transparent;padding:0">Disable</button><button aria-label="Delete stage" style="border:none;background:transparent;padding:0">✕</button></span></div>
+<div style="display:flex;align-items:center;gap:6px"><span class="lbl">Field</span><span class="fld mono">city.name<span style="color:#E7C58B;font-size:11px">keyword</span></span><span class="lbl" style="width:auto;margin-left:10px">Buckets</span><span class="fld mono tn">10</span></div>
+<div style="display:flex;align-items:center;gap:6px"><span class="lbl">Order by</span><span class="fld">Document count</span><span class="fld">Descending</span><span class="fld">Missing: skip</span></div>
+<div style="font-size:11.5px;color:#8B94A3;padding-left:98px">Each next stage runs <b style="color:#C9CFD9">inside every city bucket</b>.</div>
+</div>
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8B94A3">Output after stage 2 <span style="color:#E6E8EC;font-weight:600" class="mono">10</span> buckets · <span class="mono">31,904</span> docs covered · <span class="mono">16,309</span> in other cities</div>
+<div style="display:flex;gap:8px;overflow:hidden">
+<sc-for list="{{buckets}}" as="b" hint-placeholder-count="5">
+<div style="flex:1 1 0;min-width:0;padding:8px 10px;border:1px solid #262A33;border-radius:8px;background:#121419;display:flex;flex-direction:column;gap:6px">
+<span class="mono" style="font-size:12px;color:#E7C58B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{b.key}}</span>
+<span class="mono" style="font-size:12px">{{b.count}} <span style="color:#8B94A3">docs</span></span>
+<span style="height:4px;border-radius:2px;background:#262A33;overflow:hidden;display:block"><span style="{{b.bar}}"></span></span>
+</div>
+</sc-for>
+<div style="width:72px;flex-shrink:0;border:1px dashed #2A2F39;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#8B94A3">+5 more</div>
+</div>
+</div>
+</section>
+
+<section style="border:1px solid #262A33;border-radius:10px;background:#16191F;display:grid;grid-template-columns:520px minmax(0, 1fr)">
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;border-right:1px solid #262A33">
+<div style="display:flex;align-items:center;gap:10px"><span class="num">3</span><button class="fld" style="font-weight:600">Metrics<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button><span style="font-size:12px;color:#8B94A3">calculated per city</span><span style="margin-left:auto;display:flex;gap:10px;font-size:12px;color:#9AA3B2"><button style="border:none;background:transparent;padding:0">&lt;/&gt; JSON</button><button style="border:none;background:transparent;padding:0">Disable</button><button aria-label="Delete stage" style="border:none;background:transparent;padding:0">✕</button></span></div>
+<div style="display:flex;align-items:center;gap:6px"><span class="fld mono" style="width:130px">avg_price</span><span style="color:#8B94A3">=</span><span class="fld">Average</span><span style="color:#8B94A3;font-size:12px">of</span><span class="fld mono">price</span></div>
+<div style="display:flex;align-items:center;gap:6px"><span class="fld mono" style="width:130px">median_price</span><span style="color:#8B94A3">=</span><span class="fld">Median</span><span style="color:#8B94A3;font-size:12px">of</span><span class="fld mono">price</span></div>
+<div style="display:flex;align-items:center;gap:6px"><span class="fld mono" style="width:130px">sellers</span><span style="color:#8B94A3">=</span><span class="fld">Unique count</span><span style="color:#8B94A3;font-size:12px">of</span><span class="fld mono">seller_id</span></div>
+<button style="align-self:flex-start;border:none;background:transparent;padding:0;color:#F2B544;font-size:12px">+ Metric · avg, sum, min, max, stats, percentiles, unique count, top documents</button>
+</div>
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8B94A3">Output after stage 3 · <span style="color:#E6E8EC;font-weight:600" class="mono">10</span> buckets × 3 metrics</div>
+<div style="border:1px solid #262A33;border-radius:8px;overflow:hidden">
+<div class="mono" style="display:grid;grid-template-columns:minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));padding:6px 10px;background:#121419;font-size:11px;color:#8B94A3"><span>city.name</span><span>doc_count</span><span>avg_price</span><span>median_price</span><span>sellers</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+<div class="mono" style="display:grid;grid-template-columns:minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));padding:6px 10px;border-top:1px solid #1D2027;font-size:11.5px"><span class="ts">{{r.key}}</span><span>{{r.count}}</span><span class="tn">{{r.avg}}</span><span class="tn">{{r.med}}</span><span>{{r.sellers}}</span></div>
+</sc-for>
+</div>
+</div>
+</section>
+
+<sc-for list="{{collapsed}}" as="c" hint-placeholder-count="3">
+<section style="border:1px solid #262A33;border-radius:10px;background:#16191F;display:flex;align-items:center;gap:12px;padding:10px 14px">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B94A3" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg>
+<span class="num">{{c.n}}</span>
+<span style="font-weight:600;width:110px">{{c.type}}</span>
+<span class="mono" style="font-size:12px;color:#C9CFD9;flex-grow:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{c.desc}}</span>
+<span style="font-size:12px;color:#8B94A3">→</span>
+<span class="mono" style="font-size:12px;padding:3px 8px;border-radius:6px;background:#15261D;color:#5CCB8A;white-space:nowrap">{{c.out}}</span>
+</section>
+</sc-for>
+
+<div style="display:flex;align-items:center;gap:8px;padding-top:4px;flex-wrap:wrap">
+<button style="height:36px;padding:0 16px;border:none;border-radius:8px;background:#F2B544;color:#1A1405;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add stage</button>
+<sc-for list="{{stageTypes}}" as="s" hint-placeholder-count="8">
+<button style="height:30px;padding:0 10px;border:1px solid #2A2F39;border-radius:15px;background:#16191F;color:#C9CFD9;font-size:12px">{{s}}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isJson}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow:1;min-height:0;display:flex;overflow:hidden">
+<div style="flex-grow:1;min-width:0;padding:14px 0;overflow:hidden">
+<div style="padding:0 24px 10px;font-size:12px;color:#8B94A3">Generated request — edit here and the stages update. The gutter shows which stage each part comes from.</div>
+<div class="mono" style="font-size:12.5px;line-height:22px;white-space:pre">
+<div><span class="g"></span><span class="kw">POST</span> <span class="tk">listings-v7</span>/_search</div>
+<div><span class="g"></span>{</div>
+<div><span class="g"></span>  <span class="tk">"size"</span>: <span class="tn">0</span>,</div>
+<div style="background:#1A1D24"><span class="g">1</span>  <span class="tk">"query"</span>: { <span class="tk">"bool"</span>: { <span class="tk">"filter"</span>: [</div>
+<div style="background:#1A1D24"><span class="g">1</span>    { <span class="tk">"term"</span>: { <span class="tk">"status"</span>: <span class="ts">"active"</span> } },</div>
+<div style="background:#1A1D24"><span class="g">1</span>    { <span class="tk">"range"</span>: { <span class="tk">"price"</span>: { <span class="tk">"lte"</span>: <span class="tn">2000000</span> } } }</div>
+<div style="background:#1A1D24"><span class="g">1</span>  ] } },</div>
+<div><span class="g"></span>  <span class="tk">"aggs"</span>: {</div>
+<div style="background:#221E14"><span class="g">2</span>    <span class="tk">"by_city"</span>: {</div>
+<div style="background:#221E14"><span class="g">2</span>      <span class="tk">"terms"</span>: { <span class="tk">"field"</span>: <span class="ts">"city.name"</span>, <span class="tk">"size"</span>: <span class="tn">10</span> },</div>
+<div><span class="g"></span>      <span class="tk">"aggs"</span>: {</div>
+<div style="background:#1A1D24"><span class="g">3</span>        <span class="tk">"avg_price"</span>:    { <span class="tk">"avg"</span>: { <span class="tk">"field"</span>: <span class="ts">"price"</span> } },</div>
+<div style="background:#1A1D24"><span class="g">3</span>        <span class="tk">"median_price"</span>: { <span class="tk">"percentiles"</span>: { <span class="tk">"field"</span>: <span class="ts">"price"</span>, <span class="tk">"percents"</span>: [<span class="tn">50</span>] } },</div>
+<div style="background:#1A1D24"><span class="g">3</span>        <span class="tk">"sellers"</span>:      { <span class="tk">"cardinality"</span>: { <span class="tk">"field"</span>: <span class="ts">"seller_id"</span> } },</div>
+<div style="background:#221E14"><span class="g">4</span>        <span class="tk">"by_month"</span>:     { <span class="tk">"date_histogram"</span>: { <span class="tk">"field"</span>: <span class="ts">"created_at"</span>, <span class="tk">"calendar_interval"</span>: <span class="ts">"month"</span> } },</div>
+<div style="background:#1A1D24"><span class="g">5</span>        <span class="tk">"keep_expensive"</span>: { <span class="tk">"bucket_selector"</span>: {</div>
+<div style="background:#1A1D24"><span class="g">5</span>          <span class="tk">"buckets_path"</span>: { <span class="tk">"p"</span>: <span class="ts">"avg_price"</span> }, <span class="tk">"script"</span>: <span class="ts">"params.p &gt; 1500000"</span> } },</div>
+<div style="background:#221E14"><span class="g">6</span>        <span class="tk">"top_5"</span>: { <span class="tk">"bucket_sort"</span>: { <span class="tk">"sort"</span>: [{ <span class="tk">"avg_price"</span>: { <span class="tk">"order"</span>: <span class="ts">"desc"</span> } }], <span class="tk">"size"</span>: <span class="tn">5</span> } }</div>
+<div><span class="g"></span>      }</div>
+<div><span class="g"></span>    }</div>
+<div><span class="g"></span>  }</div>
+<div><span class="g"></span>}</div>
+</div>
+</div>
+<aside style="width:360px;flex-shrink:0;border-left:1px solid #262A33;background:#0F1115;padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+<div style="font-weight:600">How stages map to Elasticsearch</div>
+<sc-for list="{{mapping}}" as="m" hint-placeholder-count="6">
+<div style="display:flex;gap:10px;align-items:flex-start"><span class="num">{{m.n}}</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:500">{{m.stage}}</span><span class="mono" style="font-size:11.5px;color:#9AA3B2">{{m.es}}</span></div></div>
+</sc-for>
+<div style="margin-top:auto;font-size:12px;color:#9AA3B2;line-height:1.5">Elasticsearch aggregations are a tree, not a list. Each Group by stage opens a new level and every later stage nests inside it, so the pipeline view reads top to bottom.</div>
+</aside>
+</div>
+</sc-if>
+
+<sc-if value="{{isEsql}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow:1;min-height:0;padding:14px 24px;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+<div style="font-size:12px;color:#8B94A3">The same pipeline as an ES|QL query. ES|QL is piped, so each line is one stage. Requires Elasticsearch 8.11+; on OpenSearch this view switches to PPL.</div>
+<div class="mono" style="padding:14px 0;border:1px solid #262A33;border-radius:10px;background:#16191F;font-size:13px;line-height:26px;white-space:pre">
+<div><span class="g"></span><span class="kw">FROM</span> <span class="tk">listings-v7</span></div>
+<div><span class="g">1</span><span class="tp">| </span><span class="kw">WHERE</span> status == <span class="ts">"active"</span> AND price &lt;= <span class="tn">2000000</span></div>
+<div><span class="g">3</span><span class="tp">| </span><span class="kw">STATS</span> avg_price = AVG(price), median_price = MEDIAN(price),</div>
+<div><span class="g"></span>        sellers = COUNT_DISTINCT(seller_id), doc_count = COUNT(*)</div>
+<div><span class="g">2</span>        <span class="kw">BY</span> city.name</div>
+<div><span class="g">5</span><span class="tp">| </span><span class="kw">WHERE</span> avg_price &gt; <span class="tn">1500000</span></div>
+<div><span class="g">6</span><span class="tp">| </span><span class="kw">SORT</span> avg_price DESC</div>
+<div><span class="g">6</span><span class="tp">| </span><span class="kw">LIMIT</span> <span class="tn">5</span></div>
+</div>
+<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;background:#2B2512;color:#F7CF7E;font-size:12.5px;line-height:1.5;max-width:860px">
+<span style="font-weight:600;flex-shrink:0">Note</span>
+<span>Stage 4 (group by month inside each city) can't be expressed in a single ES|QL STATS, so it is left out here. Turn stage 4 off, or keep using the JSON view.</span>
+</div>
+</div>
+</sc-if>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+constructor(props) { super(props); this.state = { view: 'stages' }; }
+renderVals() {
+const view = this.state.view;
+const vs = [{ id: 'stages', label: 'Stages' }, { id: 'json', label: 'JSON' }, { id: 'esql', label: 'ES|QL' }];
+const chip = (label, value, accent, arrow) => ({ label, value, arrow,
+style: 'display:flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:13px;font-size:12px;white-space:nowrap;' + (accent ? 'background:#2B2512;border:1px solid #5A4A22;color:#F2B544' : 'background:#16191F;border:1px solid #262A33;color:#E6E8EC') });
+const max = 6120;
+const b = (key, n) => ({ key, count: n.toLocaleString('en-US'), bar: 'display:block;height:4px;background:#F2B544;width:' + Math.round(n / max * 100) + '%' });
+return {
+isStages: view === 'stages', isJson: view === 'json', isEsql: view === 'esql',
+views: vs.map((v) => ({ label: v.label, selected: v.id === view ? 'true' : 'false', pick: () => this.setState({ view: v.id }),
+style: 'height:26px;padding:0 12px;border:none;border-radius:6px;font-size:12.5px;' + (v.id === view ? 'background:#2A2F39;color:#E6E8EC;font-weight:500' : 'background:transparent;color:#9AA3B2') })),
+flow: [
+chip('Index', '12.4M docs', false, true),
+chip('1 Filter', '48,213', false, true),
+chip('2 Group by city', '10 buckets', true, true),
+chip('3 Metrics', '×3', false, true),
+chip('4 By month', '12 / city', false, true),
+chip('5 Keep', '7 of 10', false, true),
+chip('6 Top', '5 rows', false, false)
+],
+docs: [
+{ city: '"[City A]"', price: '1850000', seller: '4771832' },
+{ city: '"[City B]"', price: '1420000', seller: '4211144' },
+{ city: '"[City A]"', price: '990000', seller: '5108351' }
+],
+buckets: [b('[City A]', 6120), b('[City B]', 4880), b('[City C]', 3915), b('[City D]', 3402), b('[City E]', 2967)],
+rows: [
+{ key: '[City A]', count: '6,120', avg: '1,912,400', med: '1,840,000', sellers: '2,311' },
+{ key: '[City B]', count: '4,880', avg: '1,688,150', med: '1,620,000', sellers: '1,904' },
+{ key: '[City C]', count: '3,915', avg: '1,402,770', med: '1,350,000', sellers: '1,577' },
+{ key: '[City D]', count: '3,402', avg: '1,355,020', med: '1,290,000', sellers: '1,288' }
+],
+collapsed: [
+{ n: 4, type: 'Group by', desc: 'date_histogram · created_at · every month (inside each city)', out: '12 buckets per city' },
+{ n: 5, type: 'Keep only', desc: 'buckets where avg_price > 1,500,000   (bucket_selector)', out: '7 of 10 cities kept' },
+{ n: 6, type: 'Sort & limit', desc: 'by avg_price descending, keep 5   (bucket_sort)', out: '5 buckets returned' }
+],
+stageTypes: ['Filter', 'Group by', 'Metrics', 'Keep only (having)', 'Sort & limit', 'Running total', 'Change over time', 'Top documents'],
+mapping: [
+{ n: 1, stage: 'Filter', es: 'query.bool.filter' },
+{ n: 2, stage: 'Group by', es: 'terms · histogram · date_histogram · range · composite' },
+{ n: 3, stage: 'Metrics', es: 'avg · sum · min/max · stats · percentiles · cardinality · top_hits' },
+{ n: 4, stage: 'Group by (nested)', es: 'a sub-aggregation inside stage 2' },
+{ n: 5, stage: 'Keep only', es: 'bucket_selector (pipeline agg)' },
+{ n: 6, stage: 'Sort & limit', es: 'bucket_sort (pipeline agg)' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

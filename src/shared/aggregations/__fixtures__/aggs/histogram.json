@@ -1,0 +1,16 @@
+{
+  "size": 0,
+  "aggs": {
+    "all_avg": { "avg": { "field": "price" } },
+    "by_rooms": {
+      "histogram": { "field": "rooms", "interval": 1, "min_doc_count": 1 },
+      "aggs": {
+        "by_quarter": {
+          "date_range": { "field": "created_at", "format": "yyyy-MM", "ranges": [{ "to": "now-1y/y" }, { "from": "now-1y/y" }] },
+          "aggs": { "median": { "percentiles": { "field": "price", "percents": [50] } }, "cnt": { "value_count": { "field": "price" } } }
+        },
+        "rooms_total": { "cumulative_sum": { "buckets_path": "_count" } }
+      }
+    }
+  }
+}

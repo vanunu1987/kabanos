@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { ClusterResponse, HttpMethod } from '@shared/types'
 
 export type ResultView = 'documents' | 'table' | 'json'
-export type SubTab = 'query' | 'documents' | 'mapping' | 'aliases' | 'settings'
+export type SubTab = 'query' | 'aggregations' | 'documents' | 'mapping' | 'aliases' | 'settings'
 
 export interface QueryTabState {
   method: HttpMethod

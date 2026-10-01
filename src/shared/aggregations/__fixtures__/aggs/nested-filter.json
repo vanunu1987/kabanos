@@ -1,0 +1,19 @@
+{
+  "size": 0,
+  "query": { "bool": { "should": [{ "term": { "city.name": "[City A]" } }, { "bool": { "must_not": [{ "exists": { "field": "seller_id" } }] } }], "minimum_should_match": 1 } },
+  "aggs": {
+    "by_type": {
+      "terms": { "field": "property_type", "size": 5, "order": { "_key": "asc" }, "missing": "(missing)" },
+      "aggs": {
+        "rooms_3plus": {
+          "filter": { "bool": { "filter": [{ "range": { "rooms": { "gte": 3 } } }] } },
+          "aggs": {
+            "avg_price": { "avg": { "field": "price" } },
+            "top_docs": { "top_hits": { "size": 3, "sort": [{ "price": { "order": "desc" } }], "_source": { "includes": ["title", "price"] } } }
+          }
+        },
+        "sort_by_price": { "bucket_sort": { "sort": [{ "rooms_3plus>avg_price": { "order": "desc" } }], "size": 3 } }
+      }
+    }
+  }
+}

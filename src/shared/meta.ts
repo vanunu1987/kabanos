@@ -62,6 +62,8 @@ export interface FieldInfo {
   details: string
   /** True for sub-fields declared under `fields` (multi-fields). */
   multiField: boolean
+  /** Different types for the same path across the indices behind an alias / pattern. */
+  conflicts?: string[]
 }
 
 export interface ShardInfo {

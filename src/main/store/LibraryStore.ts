@@ -27,6 +27,7 @@ interface QueryRow {
   last_status: number | null
   last_run_at: string | null
   last_ms: number | null
+  pipeline: string | null
   created_at: string
   updated_at: string
 }
@@ -122,8 +123,8 @@ export class LibraryStore {
   createQuery(q: Partial<QueryPatch> & { method: HttpMethod; path: string }): Query {
     const id = randomUUID()
     this.db
-      .prepare('INSERT INTO queries (id, folder_id, title, method, path, body, tags, pinned) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-      .run(id, q.folderId ?? null, q.title ?? '', q.method, q.path, q.body ?? '', JSON.stringify(normTags(q.tags)), q.pinned ? 1 : 0)
+      .prepare('INSERT INTO queries (id, folder_id, title, method, path, body, tags, pinned, pipeline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(id, q.folderId ?? null, q.title ?? '', q.method, q.path, q.body ?? '', JSON.stringify(normTags(q.tags)), q.pinned ? 1 : 0, q.pipeline ?? null)
     this.reindex(id)
     return this.query(id)
   }
@@ -131,7 +132,7 @@ export class LibraryStore {
   updateQuery(id: string, patch: QueryPatch): Query {
     const sets: string[] = []
     const params: unknown[] = []
-    const col: Record<keyof QueryPatch, string> = { folderId: 'folder_id', title: 'title', method: 'method', path: 'path', body: 'body', tags: 'tags', pinned: 'pinned' }
+    const col: Record<keyof QueryPatch, string> = { folderId: 'folder_id', title: 'title', method: 'method', path: 'path', body: 'body', tags: 'tags', pinned: 'pinned', pipeline: 'pipeline' }
     for (const [k, v] of Object.entries(patch) as Array<[keyof QueryPatch, unknown]>) {
       if (v === undefined) continue
       sets.push(`${col[k]} = ?`)
@@ -389,6 +390,7 @@ function toQuery(r: QueryRow): Query {
     lastStatus: r.last_status ?? undefined,
     lastRunAt: r.last_run_at ?? undefined,
     lastMs: r.last_ms ?? undefined,
+    ...(r.pipeline ? { pipeline: r.pipeline } : {}),
     createdAt: r.created_at,
     updatedAt: r.updated_at
   }

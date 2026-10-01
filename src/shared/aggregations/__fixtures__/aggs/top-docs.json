@@ -1,0 +1,6 @@
+{
+  "size": 5,
+  "query": { "bool": { "filter": [{ "term": { "status": "active" } }] } },
+  "sort": [{ "price": { "order": "asc" } }],
+  "_source": { "includes": ["title", "price", "city.name"] }
+}

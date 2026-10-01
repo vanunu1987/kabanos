@@ -1,0 +1,14 @@
+{
+  "size": 0,
+  "track_total_hits": true,
+  "query": { "multi_match": { "query": "garden", "fields": ["title", "description"] } },
+  "aggs": {
+    "by_city": {
+      "terms": { "field": "city.name", "size": 20, "shard_size": 100 },
+      "aggs": { "avg_price": { "avg": { "field": "price" } } }
+    },
+    "by_type": { "terms": { "field": "property_type", "size": 5 } },
+    "keywords": { "significant_terms": { "field": "tags" } },
+    "scripted": { "bucket_script": { "buckets_path": { "a": "x" }, "script": "params.a * 2" } }
+  }
+}

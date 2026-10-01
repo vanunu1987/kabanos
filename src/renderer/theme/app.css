@@ -355,6 +355,7 @@ button.pill { cursor: pointer; }
 .lib-row:hover { background: var(--surface-2); }
 .lib-row.active { background: var(--selected); }
 .lib-method { font-size: 10.5px; width: 36px; flex-shrink: 0; }
+.lib-method.lib-agg { font-size: 14px; color: var(--accent); }
 .lib-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex-grow: 1; }
 .lib-name, .lib-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lib-meta { font-size: 11px; color: var(--faint); }

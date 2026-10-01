@@ -1,0 +1,15 @@
+{
+  "size": 0,
+  "query": { "bool": { "filter": [{ "terms": { "status": ["active", "pending"] } }, { "range": { "price": { "gte": 100, "lte": 900000 } } }, { "exists": { "field": "city.name" } }] } },
+  "aggs": {
+    "by_city_and_type": {
+      "composite": { "size": 50, "sources": [{ "city_name": { "terms": { "field": "city.name" } } }, { "rooms": { "histogram": { "field": "rooms", "interval": 1 } } }] },
+      "aggs": {
+        "segments": {
+          "filters": { "filters": { "cheap": { "range": { "price": { "lt": 500000 } } }, "not_active": { "bool": { "must_not": [{ "term": { "status": "active" } }] } } } },
+          "aggs": { "sellers": { "cardinality": { "field": "seller_id" } } }
+        }
+      }
+    }
+  }
+}

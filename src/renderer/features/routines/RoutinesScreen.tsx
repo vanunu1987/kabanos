@@ -203,7 +203,8 @@ function VarChip({ name, value, onChange, onRemove }: { name: string; value: str
 function AddStep({ routine, onDone }: { routine: Routine; onDone(): void }) {
   const [search, setSearch] = useState('')
   const lib = useQuery({ queryKey: ['library-search', search], queryFn: () => api.library.queries({ kind: 'all' }, search) })
-  const saved = (lib.data ?? []).filter((q) => q.folderId !== null).slice(0, 8)
+  // Unfiled items are workspace scratch blocks; saved aggregation pipelines count even when unfiled.
+  const saved = (lib.data ?? []).filter((q) => q.folderId !== null || q.pipeline).slice(0, 8)
   const add = async (step: Parameters<ReturnType<typeof useRoutines.getState>['addSteps']>[1][number]) => {
     await useRoutines.getState().addSteps(routine.id, [step])
     onDone()
@@ -225,10 +226,10 @@ function AddStep({ routine, onDone }: { routine: Routine; onDone(): void }) {
       </label>
       {saved.map((q) => (
         <button key={q.id} className="lib-row" onClick={() => add({ name: q.title || q.path, method: q.method, path: q.path, body: q.body, queryRef: q.id, onFail: 'stop' })}>
-          <span className={`lib-method mono m-${q.method.toLowerCase()}`}>{q.method}</span>
+          {q.pipeline ? <span className="lib-method mono lib-agg">∑</span> : <span className={`lib-method mono m-${q.method.toLowerCase()}`}>{q.method}</span>}
           <span className="lib-text">
-            <span className="lib-name">{q.title || q.path}</span>
-            <span className="lib-meta mono">{q.path}</span>
+            <span className="lib-name">{q.pipeline ? `Run aggregation pipeline “${q.title}”` : q.title || q.path}</span>
+            <span className="lib-meta mono">{q.pipeline ? `${q.path} · rows → steps.<id>.rows` : q.path}</span>
           </span>
         </button>
       ))}
