@@ -4,6 +4,7 @@ import { CONSOLE_LANGUAGE, ensureConsoleLanguage, registerConsoleContext, type C
 import '../../monaco/setup'
 import { useWorkspace } from './store'
 import { formatBlock } from '@shared/format'
+import { useMonacoTheme } from '../../theme/theme'
 
 const LINE = 21
 const MAX_HEIGHT = 560
@@ -16,6 +17,7 @@ export function ConsoleEditor({ id, value, onChange, onRun, onFocus, context, au
   const ctxRef = useRef(context)
   ctxRef.current = context
   const uri = `block://${id}`
+  const theme = useMonacoTheme()
 
   useEffect(() => {
     ensureConsoleLanguage()
@@ -30,7 +32,7 @@ export function ConsoleEditor({ id, value, onChange, onRun, onFocus, context, au
     <div style={{ height }} className="console-editor">
       <Editor
         height="100%"
-        theme="kabanos"
+        theme={theme}
         language={CONSOLE_LANGUAGE}
         path={uri}
         value={value}

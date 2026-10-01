@@ -8,7 +8,7 @@ import { SettingsScreen } from './features/settings/SettingsScreen'
 import { ActivityBar } from './shell/ActivityBar'
 import { TitleBar } from './shell/TitleBar'
 import { CommandPalette } from './shell/CommandPalette'
-import { useApp } from './store'
+import { useApp, type View } from './store'
 
 export function App() {
   const view = useApp((s) => s.view)
@@ -30,9 +30,11 @@ export function App() {
       useApp.getState().openTab(id)
       useApp.getState().setView('explorer')
     })
+    const offNav = window.kabanosIpc.onNavigate((v) => useApp.getState().setView(v as View))
     return () => {
       window.removeEventListener('keydown', onKey, true)
       offOpen()
+      offNav()
     }
   }, [])
 

@@ -47,3 +47,13 @@ test('settings show the data folder and shortcuts', async () => {
   await expect(page.locator('.settings')).toContainText('Data folder')
   await expect(page.locator('.settings')).toContainText('⌘K')
 })
+
+test('the app menu is named kabanos (About / Hide / Quit) and ⌘, opens Settings', async () => {
+  const info = await app.evaluate(({ app: a, Menu }) => ({ name: a.getName(), menu: Menu.getApplicationMenu()?.items[0]?.label, items: Menu.getApplicationMenu()?.items[0]?.submenu?.items.map((i) => i.label).filter(Boolean) }))
+  expect(info.name).toBe('kabanos')
+  expect(info.menu).toBe('kabanos')
+  expect(info.items).toEqual(expect.arrayContaining(['About kabanos', 'Hide kabanos', 'Quit kabanos']))
+  await page.getByRole('button', { name: 'Connections' }).first().click()
+  await app.evaluate(({ Menu }) => Menu.getApplicationMenu()?.items[0]?.submenu?.items.find((i) => i.label === 'Settings…')?.click())
+  await expect(page.locator('.settings')).toContainText('Data folder')
+})

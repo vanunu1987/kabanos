@@ -242,7 +242,7 @@ function RunLog({ routine, run, width }: { routine: Routine; run?: RoutineRun; w
   const runs = useQuery({ queryKey: ['runs', routine.id, run?.status, run?.id], queryFn: () => api.routines.runs(routine.id) })
   const shown = pick === 'latest' ? run : runs.data?.find((r) => r.id === pick)
   const captured = useMemo(() => Object.entries(shown?.captured ?? {}).flatMap(([step, vals]) => Object.entries(vals).map(([k, v]) => [`steps.${step}.${k}`, v] as const)), [shown])
-  const COLOR = { ok: '#8FD9AE', info: '#C9CFD9', run: '#9CC4FF', warn: '#F2B544', error: '#FF9A92' }
+  const COLOR = { ok: 'var(--log-ok)', info: 'var(--text-2)', run: 'var(--json-key)', warn: 'var(--accent)', error: 'var(--bad-text)' }
 
   return (
     <section className="run-log" style={{ width }}>

@@ -3,7 +3,7 @@
  * Needs `pnpm build`, `pnpm clusters:up` and `pnpm clusters:seed`.
  */
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
-import { CLUSTERS, connect, launch } from './helpers'
+import { CLUSTERS, connect, launch, suggest } from './helpers'
 
 // Steps build on each other; stop at the first failure instead of cascading timeouts.
 test.describe.configure({ mode: 'serial' })
@@ -93,8 +93,7 @@ test('body autocomplete suggests mapped fields', async () => {
   await editor.click()
   await page.keyboard.press('Meta+A')
   await page.keyboard.type('{"query":{"term":{"ci')
-  await page.keyboard.press('Control+Space')
-  await expect(page.locator('.suggest-widget')).toContainText('city.name', { timeout: 5000 })
+  await suggest(page, 'city.name')
   await page.keyboard.press('Escape')
 })
 

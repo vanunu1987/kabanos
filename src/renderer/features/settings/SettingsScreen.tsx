@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../../api'
 import { useApp } from '../../store'
 import { BrandMark, Wordmark } from '../../shell/Brand'
+import { useTheme, type ThemePref } from '../../theme/theme'
 
 const SHORTCUTS: Array<[string, string]> = [
   ['⌘K', 'Command palette — jump to any connection, index, query, routine'],
@@ -52,6 +53,7 @@ export function SettingsScreen() {
           )}
           <span className="hint">Connections, the query library, history and routines live in a local SQLite file in the data folder. Passwords, API keys and secret variables are encrypted with a key held in the macOS Keychain.</span>
         </section>
+        <Appearance />
         <section className="card pad">
           <h2>Request history</h2>
           <div className="inline-row between">
@@ -79,5 +81,32 @@ export function SettingsScreen() {
         </section>
       </div>
     </main>
+  )
+}
+
+const THEMES: Array<[ThemePref, string]> = [
+  ['dark', 'Dark'],
+  ['light', 'Light'],
+  ['system', 'Match system']
+]
+
+function Appearance() {
+  const pref = useTheme((s) => s.pref)
+  const setPref = useTheme((s) => s.setPref)
+  return (
+    <section className="card pad">
+      <h2>Appearance</h2>
+      <div className="inline-row between">
+        <span>Theme</span>
+        <div role="group" aria-label="Theme" className="segmented">
+          {THEMES.map(([id, label]) => (
+            <button key={id} className={pref === id ? 'on' : ''} aria-pressed={pref === id} onClick={() => setPref(id)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <span className="hint">“Match system” follows macOS appearance. The sun / moon button in the title bar switches between light and dark.</span>
+    </section>
   )
 }

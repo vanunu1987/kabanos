@@ -25,7 +25,7 @@ function typed<T extends z.ZodType[]>(schemas: [...T], fn: (...args: { [K in key
   }
 }
 
-export function registerIpc(connections: ConnectionManager, metadata: MetadataService, library: LibraryStore, routines: RoutineStore, runner: RoutineRunner, security: SecurityService): void {
+export function registerIpc(connections: ConnectionManager, metadata: MetadataService, library: LibraryStore, routines: RoutineStore, runner: RoutineRunner, security: SecurityService, hooks: { setTheme(pref: 'dark' | 'light' | 'system'): void }): void {
   const exports = new Map<string, AbortController>()
   const handlers: Record<string, Handler> = {
     'connections.list': () => connections.list(),
@@ -143,6 +143,7 @@ export function registerIpc(connections: ConnectionManager, metadata: MetadataSe
     'security.deleteTenant': typed([z.string(), z.string()], (id, n) => security.deleteTenant(id, n)),
 
     'app.info': () => ({ version: app.getVersion(), electron: process.versions.electron, chrome: process.versions.chrome, node: process.versions.node, dataDir: app.getPath('userData'), historyCount: library.historyCount() }),
+    'app.setTheme': typed([z.enum(['dark', 'light', 'system'])], (pref) => hooks.setTheme(pref)),
     'app.revealData': () => shell.openPath(app.getPath('userData')).then(() => undefined),
     'library.clearHistory': () => library.clearHistory(),
 

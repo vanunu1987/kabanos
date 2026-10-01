@@ -10,31 +10,33 @@ self.MonacoEnvironment = {
 // The full monaco-editor type is what @monaco-editor/react expects; the lite build is API-compatible.
 loader.config({ monaco: monaco as unknown as typeof import('monaco-editor') })
 
-// SPEC §10 tokens.
-monaco.editor.defineTheme('kabanos', {
+// SPEC §10 tokens, dark and light.
+const rules = (c: Record<string, string>) => [
+  { token: 'string.key.json', foreground: c.key },
+  { token: 'string.value.json', foreground: c.str },
+  { token: 'number', foreground: c.num },
+  { token: 'number.json', foreground: c.num },
+  { token: 'keyword.json', foreground: c.lit },
+  { token: 'delimiter', foreground: c.punct },
+  { token: 'comment', foreground: c.comment, fontStyle: 'italic' },
+  { token: 'method.get', foreground: c.get, fontStyle: 'bold' },
+  { token: 'method.post', foreground: c.post, fontStyle: 'bold' },
+  { token: 'method.put', foreground: c.put, fontStyle: 'bold' },
+  { token: 'method.head', foreground: c.head, fontStyle: 'bold' },
+  { token: 'method.delete', foreground: c.del, fontStyle: 'bold' },
+  { token: 'path', foreground: c.text },
+  { token: 'title', foreground: c.text2, fontStyle: 'bold' },
+  { token: 'variable', foreground: c.os, fontStyle: 'bold' },
+  { token: 'key', foreground: c.key },
+  { token: 'value', foreground: c.str },
+  { token: 'num', foreground: c.num },
+  { token: 'literal', foreground: c.lit }
+]
+
+monaco.editor.defineTheme('kabanos-dark', {
   base: 'vs-dark',
   inherit: true,
-  rules: [
-    { token: 'string.key.json', foreground: '9CC4FF' },
-    { token: 'string.value.json', foreground: 'E7C58B' },
-    { token: 'number', foreground: 'C7A2FF' },
-    { token: 'number.json', foreground: 'C7A2FF' },
-    { token: 'keyword.json', foreground: 'FF9E7A' },
-    { token: 'delimiter', foreground: '7C8595' },
-    { token: 'comment', foreground: '6B7385', fontStyle: 'italic' },
-    { token: 'method.get', foreground: '5CCB8A', fontStyle: 'bold' },
-    { token: 'method.post', foreground: 'F2B544', fontStyle: 'bold' },
-    { token: 'method.put', foreground: '6AA8FF', fontStyle: 'bold' },
-    { token: 'method.head', foreground: 'B6A2FF', fontStyle: 'bold' },
-    { token: 'method.delete', foreground: 'FF7A70', fontStyle: 'bold' },
-    { token: 'path', foreground: 'E6E8EC' },
-    { token: 'title', foreground: 'C9CFD9', fontStyle: 'bold' },
-    { token: 'variable', foreground: '4DC4D6', fontStyle: 'bold' },
-    { token: 'key', foreground: '9CC4FF' },
-    { token: 'value', foreground: 'E7C58B' },
-    { token: 'num', foreground: 'C7A2FF' },
-    { token: 'literal', foreground: 'FF9E7A' }
-  ],
+  rules: rules({ key: '9CC4FF', str: 'E7C58B', num: 'C7A2FF', lit: 'FF9E7A', punct: '7C8595', comment: '6B7385', get: '5CCB8A', post: 'F2B544', put: '6AA8FF', head: 'B6A2FF', del: 'FF7A70', text: 'E6E8EC', text2: 'C9CFD9', os: '4DC4D6' }),
   colors: {
     'editor.background': '#121419',
     'editor.foreground': '#C9CFD9',
@@ -51,6 +53,29 @@ monaco.editor.defineTheme('kabanos', {
     'editorSuggestWidget.selectedBackground': '#2B2512',
     'editorSuggestWidget.highlightForeground': '#F2B544',
     'scrollbarSlider.background': '#2A2F3966'
+  }
+})
+
+monaco.editor.defineTheme('kabanos-light', {
+  base: 'vs',
+  inherit: true,
+  rules: rules({ key: '2C6BD3', str: '9A5F05', num: '7448CC', lit: 'BF5419', punct: '6B7380', comment: '8A93A1', get: '1B8A52', post: 'B5770A', put: '2C6BD3', head: '7554D1', del: 'CC3D32', text: '1A1D23', text2: '353C49', os: '0B8496' }),
+  colors: {
+    'editor.background': '#FFFFFF',
+    'editor.foreground': '#353C49',
+    'editorLineNumber.foreground': '#A6ADB9',
+    'editorLineNumber.activeForeground': '#5B6472',
+    'editor.lineHighlightBackground': '#F3F4F7',
+    'editor.selectionBackground': '#D6E2F7',
+    'editorCursor.foreground': '#B5770A',
+    'editorIndentGuide.background1': '#E8EBF0',
+    'editorWidget.background': '#FFFFFF',
+    'editorWidget.border': '#CFD4DC',
+    'editorSuggestWidget.background': '#FFFFFF',
+    'editorSuggestWidget.border': '#CFD4DC',
+    'editorSuggestWidget.selectedBackground': '#FCF0D8',
+    'editorSuggestWidget.highlightForeground': '#B5770A',
+    'scrollbarSlider.background': '#B7BDC855'
   }
 })
 

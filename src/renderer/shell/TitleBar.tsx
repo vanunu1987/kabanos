@@ -2,6 +2,7 @@ import { EngineBadge } from '../components/EngineBadge'
 import { COLORS, useApp } from '../store'
 import { Icon } from './icons'
 import { BrandMark, Wordmark } from './Brand'
+import { useTheme } from '../theme/theme'
 
 export function TitleBar() {
   const { connections, openTabs, activeTab, view } = useApp()
@@ -51,11 +52,23 @@ export function TitleBar() {
         </div>
       )}
       <div className="spacer" />
+      <ThemeToggle />
       <button className="palette-btn" title="Command palette (⌘K)" onClick={() => useApp.setState({ paletteOpen: true })}>
         {Icon.search()}
         <span>Jump to connection, index, query…</span>
         <span className="mono" style={{ fontSize: 11 }}>⌘K</span>
       </button>
     </header>
+  )
+}
+
+function ThemeToggle() {
+  const resolved = useTheme((s) => s.resolved)
+  const toggle = useTheme((s) => s.toggle)
+  const next = resolved === 'dark' ? 'light' : 'dark'
+  return (
+    <button className="icon-btn theme-toggle" onClick={toggle} aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>
+      {resolved === 'dark' ? Icon.sun() : Icon.moon()}
+    </button>
   )
 }

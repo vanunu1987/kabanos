@@ -44,10 +44,97 @@
   --json-string: #e7c58b;
   --json-number: #c7a2ff;
   --json-punct: #7c8595;
+  --json-literal: #ff9e7a;
+
+  /* Previously hard-coded in app.css */
+  --pane-deep: #0f1115;
+  --chip-blue-bg: #1e2230;
+  --bad-text: #ff9a92;
+  --sel-row: #1a1e26;
+  --stop-border: #5a2a28;
+  --line-done: #2f5a43;
+  --m-get-bg: #13251b;
+  --m-put-bg: #142033;
+  --m-head-bg: #1f1a33;
+  --m-delete-bg: #2a1716;
+  --on-danger: #2a0b08;
+  --note-text: #e9d3a3;
+  --os-note-text: #a8dde5;
+  --log-ok: #8fd9ae;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --backdrop: rgba(5, 6, 8, 0.6);
+  color-scheme: dark;
 
   --font-ui: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
   --radius-sm: 7px;
   --radius: 8px;
   --radius-lg: 10px;
+}
+
+/* Light theme — same roles, tuned for contrast on white (amber/teal/greens darkened for text). */
+:root[data-theme='light'] {
+  --bg: #f6f7f9;
+  --chrome: #eceef2;
+  --surface: #ffffff;
+  --surface-2: #f3f4f7;
+  --surface-3: #eef0f4;
+  --tab-active: #ffffff;
+  --selected: #e3e8f1;
+  --border: #e0e3e9;
+  --border-strong: #cfd4dc;
+  --border-stronger: #b7bdc8;
+
+  --text: #1a1d23;
+  --text-2: #353c49;
+  --muted: #5b6472;
+  --faint: #737c8a;
+  --line-no: #a6adb9;
+
+  --accent: #b5770a;
+  --accent-bg: #fcf0d8;
+  --accent-hover: #965f04;
+  --on-accent: #ffffff;
+  --os: #0b8496;
+  --os-bg: #ddf3f6;
+
+  --get: #1b8a52;
+  --post: #b5770a;
+  --put: #2c6bd3;
+  --head: #7554d1;
+  --delete: #cc3d32;
+
+  --green: #1b8a52;
+  --yellow: #a97c00;
+  --red: #cc3d32;
+  --ok-bg: #e6f5ec;
+  --ok-border: #a8d8bc;
+  --ok-text: #2c6a46;
+  --err-bg: #fcebe9;
+  --err-border: #f0bcb6;
+  --err-text: #9e3329;
+
+  --json-key: #2c6bd3;
+  --json-string: #9a5f05;
+  --json-number: #7448cc;
+  --json-punct: #6b7380;
+  --json-literal: #bf5419;
+
+  --pane-deep: #fbfbfc;
+  --chip-blue-bg: #e6eefc;
+  --bad-text: #b8362c;
+  --sel-row: #eef2f8;
+  --stop-border: #f0bcb6;
+  --line-done: #a8d8bc;
+  --m-get-bg: #e6f5ec;
+  --m-put-bg: #e6eefc;
+  --m-head-bg: #efeafc;
+  --m-delete-bg: #fcebe9;
+  --on-danger: #ffffff;
+  --note-text: #6e4c08;
+  --os-note-text: #0d5f6b;
+  --log-ok: #1b8a52;
+  --shadow: rgba(20, 24, 33, 0.16);
+  --backdrop: rgba(30, 34, 42, 0.35);
+  color-scheme: light;
 }

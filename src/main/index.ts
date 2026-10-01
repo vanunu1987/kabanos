@@ -1,5 +1,6 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, dialog, Menu, nativeImage, safeStorage, shell, Tray } from 'electron'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { app, BrowserWindow, dialog, Menu, nativeImage, nativeTheme, safeStorage, shell, Tray } from 'electron'
 import { ConnectionManager, type ConfirmWrite } from './connections/ConnectionManager'
 import { SecretStore } from './connections/secrets'
 import { registerIpc } from './ipc/handlers'
@@ -19,6 +20,29 @@ let tray: Tray | null = null
 // Data folder, one-time migration from "Sift", Keychain item. KABANOS_USER_DATA gives e2e tests a throwaway profile.
 const profile = prepareProfile()
 
+type ThemePref = 'dark' | 'light' | 'system'
+const themeFile = () => join(app.getPath('userData'), 'theme.json')
+function readThemePref(): ThemePref {
+  try {
+    const v = (JSON.parse(readFileSync(themeFile(), 'utf8')) as { pref?: ThemePref }).pref
+    return v === 'light' || v === 'system' ? v : 'dark'
+  } catch {
+    return 'dark'
+  }
+}
+const windowBackground = () => (nativeTheme.shouldUseDarkColors ? '#121419' : '#F6F7F9')
+
+/** Theme from the renderer: native dialogs/menus follow it, and it's remembered for the next launch's window background. */
+function setThemePref(pref: ThemePref): void {
+  nativeTheme.themeSource = pref
+  try {
+    writeFileSync(themeFile(), JSON.stringify({ pref }))
+  } catch {
+    /* not persisted */
+  }
+  for (const w of BrowserWindow.getAllWindows()) w.setBackgroundColor(windowBackground())
+}
+
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1440,
@@ -26,7 +50,7 @@ function createWindow(): BrowserWindow {
     minWidth: 1100,
     minHeight: 700,
     show: false,
-    backgroundColor: '#121419',
+    backgroundColor: windowBackground(),
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 14, y: 16 },
     webPreferences: {
@@ -61,6 +85,37 @@ const confirmWrite: ConfirmWrite = async (conn, req, c) => {
   }
   const res = mainWindow ? await dialog.showMessageBox(mainWindow, opts) : await dialog.showMessageBox(opts)
   return res.response === 1
+}
+
+/**
+ * App menu with the real name. Built after finishProfile(): a migrated profile runs as "Sift" for a
+ * moment at startup (to load its Keychain key), and Electron's default menu would keep that name.
+ */
+function buildAppMenu(): void {
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate([
+      {
+        label: APP_NAME,
+        submenu: [
+          { role: 'about', label: `About ${APP_NAME}` },
+          { type: 'separator' },
+          { label: 'Settings…', accelerator: 'CmdOrCtrl+,', click: () => showWindow().webContents.send('kabanos:navigate', 'settings') },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide', label: `Hide ${APP_NAME}` },
+          { role: 'hideOthers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit', label: `Quit ${APP_NAME}` }
+        ]
+      },
+      // Keep the standard Edit menu: Monaco and inputs rely on it for ⌘C / ⌘V / ⌘A.
+      { role: 'editMenu' },
+      { role: 'viewMenu' },
+      { role: 'windowMenu' }
+    ])
+  )
 }
 
 function showWindow(): BrowserWindow {
@@ -99,6 +154,8 @@ function createTray(listConnections: () => Array<{ id: string; name: string; fol
 
 app.whenReady().then(() => {
   finishProfile()
+  nativeTheme.themeSource = readThemePref()
+  buildAppMenu()
   app.setAboutPanelOptions({ applicationName: APP_NAME, applicationVersion: app.getVersion(), copyright: 'Elasticsearch & OpenSearch, organised.' })
   // Packaged builds take the Dock icon from the .icns; in dev, show the brand icon instead of Electron's.
   if (!app.isPackaged && process.platform === 'darwin') app.dock?.setIcon(nativeImage.createFromPath(brandAsset('kabanos-icon-1024.png')))
@@ -132,7 +189,7 @@ app.whenReady().then(() => {
     save: (run) => routines.saveRun(run)
   })
   const security = new SecurityService((req) => connections.request(req), (id) => connections.get(id))
-  registerIpc(connections, metadata, library, routines, runner, security)
+  registerIpc(connections, metadata, library, routines, runner, security, { setTheme: setThemePref })
 
   mainWindow = createWindow()
   if (!process.env.KABANOS_USER_DATA && !process.env.KABANOS_APPDATA) createTray(() => connections.list())

@@ -52,6 +52,7 @@ export interface KabanosApi {
   app: {
     info(): Promise<{ version: string; electron: string; chrome: string; node: string; dataDir: string; historyCount: number }>
     revealData(): Promise<void>
+    setTheme(pref: 'dark' | 'light' | 'system'): Promise<void>
   }
   workspace: {
     tabs(): Promise<WorkspaceTab[]>

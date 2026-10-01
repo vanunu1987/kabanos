@@ -3,7 +3,7 @@
  * Needs `pnpm build`, `pnpm clusters:up` and `pnpm clusters:seed`.
  */
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
-import { CLUSTERS, connect, launch, pasteInto } from './helpers'
+import { CLUSTERS, connect, launch, pasteInto, suggest } from './helpers'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -42,13 +42,11 @@ test('request-line autocomplete: endpoints and index names', async () => {
   await addBlock()
   await pasteInto(app, page, lastEditor(), 'GET _clu')
   await page.keyboard.press('End')
-  await page.keyboard.press('Control+Space')
-  await expect(page.locator('.suggest-widget')).toContainText('_cluster/health')
+  await suggest(page, '_cluster/health')
   await page.keyboard.press('Escape')
   await pasteInto(app, page, lastEditor(), 'GET list')
   await page.keyboard.press('End')
-  await page.keyboard.press('Control+Space')
-  await expect(page.locator('.suggest-widget')).toContainText('listings-v7')
+  await suggest(page, 'listings-v7')
   await page.keyboard.press('Escape')
 })
 
@@ -56,14 +54,12 @@ test('body autocomplete: spec keys and mapping fields', async () => {
   await pasteInto(app, page, lastEditor(), 'POST listings/_search\n{"query":{"term":{"ci')
   await page.keyboard.press('Meta+ArrowDown')
   await page.keyboard.press('End')
-  await page.keyboard.press('Control+Space')
-  await expect(page.locator('.suggest-widget')).toContainText('city.name')
+  await suggest(page, 'city.name')
   await page.keyboard.press('Escape')
   await pasteInto(app, page, lastEditor(), 'POST listings/_search\n{"query":{"bool":{"fil')
   await page.keyboard.press('Meta+ArrowDown')
   await page.keyboard.press('End')
-  await page.keyboard.press('Control+Space')
-  await expect(page.locator('.suggest-widget')).toContainText('filter')
+  await suggest(page, 'filter')
   await page.keyboard.press('Escape')
   await blocks().last().getByRole('button', { name: 'Block actions' }).click()
   await page.getByRole('menuitem', { name: 'Delete block' }).click()

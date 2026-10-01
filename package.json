@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run",
     "test:watch": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps && node scripts/brand-dev-electron.mjs",
     "dist": "electron-vite build && electron-builder --mac dmg",
     "clusters:up": "docker compose up -d",
     "clusters:down": "docker compose down",
@@ -26,7 +26,8 @@
     "spec:build": "node scripts/build-spec.mjs",
     "pack": "electron-vite build && electron-builder --mac --arm64 --dir",
     "smoke": "playwright test --config playwright.smoke.config.ts",
-    "dist:arm64": "electron-vite build && electron-builder --mac dmg --arm64"
+    "dist:arm64": "electron-vite build && electron-builder --mac dmg --arm64",
+    "predev": "node scripts/brand-dev-electron.mjs"
   },
   "dependencies": {
     "@aws-crypto/sha256-js": "^5.2.0",

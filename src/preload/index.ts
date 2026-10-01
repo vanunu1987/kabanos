@@ -13,6 +13,12 @@ contextBridge.exposeInMainWorld('kabanosIpc', {
     ipcRenderer.on(ROUTINE_EVENT_CHANNEL, listener)
     return () => ipcRenderer.removeListener(ROUTINE_EVENT_CHANNEL, listener)
   },
+  /** The app menu asked to show a screen (e.g. Settings… ⌘,). */
+  onNavigate: (cb: (view: string) => void): (() => void) => {
+    const listener = (_: unknown, view: string) => cb(view)
+    ipcRenderer.on('kabanos:navigate', listener)
+    return () => ipcRenderer.removeListener('kabanos:navigate', listener)
+  },
   /** The menu-bar icon asked to open a connection. */
   onOpenConnection: (cb: (id: string) => void): (() => void) => {
     const listener = (_: unknown, id: string) => cb(id)

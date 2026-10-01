@@ -3,6 +3,7 @@ import type { editor } from 'monaco-editor'
 import { useRef } from 'react'
 import '../monaco/setup'
 import { formatBody } from '@shared/format'
+import { useMonacoTheme } from '../theme/theme'
 
 const OPTIONS: editor.IStandaloneEditorConstructionOptions = {
   fontFamily: "'JetBrains Mono', ui-monospace, Menlo, monospace",
@@ -37,12 +38,13 @@ export interface CodeEditorProps {
 }
 
 export function CodeEditor({ value, onChange, language = 'json', readOnly, path, onMount, onRun, height = '100%', options }: CodeEditorProps) {
+  const theme = useMonacoTheme()
   const runRef = useRef(onRun)
   runRef.current = onRun
   return (
     <Editor
       height={height}
-      theme="kabanos"
+      theme={theme}
       language={language}
       path={path}
       value={value}
@@ -75,5 +77,6 @@ export function CodeEditor({ value, onChange, language = 'json', readOnly, path,
 }
 
 export function JsonDiff({ original, modified }: { original: string; modified: string }) {
-  return <DiffEditor height="100%" theme="kabanos" language="json" original={original} modified={modified} options={{ ...OPTIONS, readOnly: true, renderSideBySide: false }} />
+  const theme = useMonacoTheme()
+  return <DiffEditor height="100%" theme={theme} language="json" original={original} modified={modified} options={{ ...OPTIONS, readOnly: true, renderSideBySide: false }} />
 }

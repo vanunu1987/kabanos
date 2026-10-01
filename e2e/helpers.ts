@@ -38,3 +38,19 @@ export async function pasteInto(app: ElectronApplication, page: Page, editor: Re
   const first = text.split('\n')[0]!.trim()
   await expect(editor.locator('.view-lines')).toContainText(new RegExp(first.split(/\s+/).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+')))
 }
+
+/** Open the suggest widget on settled text and wait for an entry (retries if Monaco raced the edit). */
+export async function suggest(page: Page, expected: string): Promise<void> {
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(150)
+    await page.keyboard.press('Control+Space')
+    try {
+      await expect(page.locator('.suggest-widget.visible')).toContainText(expected, { timeout: 2500 })
+      return
+    } catch {
+      /* retry */
+    }
+  }
+  await expect(page.locator('.suggest-widget.visible')).toContainText(expected)
+}

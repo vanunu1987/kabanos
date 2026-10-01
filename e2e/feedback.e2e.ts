@@ -2,7 +2,7 @@
  * Review round 1: resizable panes, structure hints, ⌘I, ⌘↵ per block, mapping editing, empty index.
  */
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
-import { CLUSTERS, connect, launch, pasteInto } from './helpers'
+import { CLUSTERS, connect, launch, pasteInto, suggest } from './helpers'
 
 test.describe.configure({ mode: 'serial' })
 let app: ElectronApplication
@@ -22,22 +22,6 @@ test.afterAll(async () => {
 
 /** A block's current text (Monaco recycles line elements, so the DOM isn't a reliable source). */
 const editorText = async (loc: ReturnType<Page['locator']>) => (await loc.locator('xpath=ancestor::div[contains(concat(" ", @class, " "), " block ")][1]').getAttribute('data-text')) ?? ''
-
-/** Open the suggest widget on settled text and wait for an entry (retries once if Monaco raced the edit). */
-async function suggest(expected: string) {
-  for (let i = 0; i < 3; i++) {
-    await page.keyboard.press('Escape')
-    await page.waitForTimeout(150)
-    await page.keyboard.press('Control+Space')
-    try {
-      await expect(page.locator('.suggest-widget.visible')).toContainText(expected, { timeout: 2500 })
-      return
-    } catch {
-      /* retry */
-    }
-  }
-  await expect(page.locator('.suggest-widget.visible')).toContainText(expected)
-}
 
 test('⌘↵ runs the focused block, not the last one', async () => {
   await page.getByRole('button', { name: 'Query workspace' }).click()
@@ -71,7 +55,7 @@ test('picking "term" inserts its structure and then suggests fields', async () =
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('End')
-  await suggest('term')
+  await suggest(page, 'term')
   await page.keyboard.press('Enter')
   await expect.poll(() => editorText(ed)).toMatch(/"term": \{\s+"FIELD": \{\s+"value": "VALUE"\s+\}\s+\}/)
   // The FIELD placeholder is selected and field suggestions are already open.

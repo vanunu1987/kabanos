@@ -63,6 +63,17 @@ export const Icon = {
       <path d="M9 12l2 2 4-4" />
     </svg>
   ),
+  sun: (s = 16): ReactElement => (
+    <svg width={s} height={s} viewBox="0 0 24 24" {...base} strokeWidth={1.8}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4" />
+    </svg>
+  ),
+  moon: (s = 16): ReactElement => (
+    <svg width={s} height={s} viewBox="0 0 24 24" {...base} strokeWidth={1.8}>
+      <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+    </svg>
+  ),
   settings: (): ReactElement => (
     <svg width="20" height="20" viewBox="0 0 24 24" {...base} strokeWidth={1.6}>
       <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
