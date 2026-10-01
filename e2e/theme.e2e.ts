@@ -1,6 +1,6 @@
 /** Light / dark theme: toggle, persistence, editors and native window follow. */
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
-import { CLUSTERS, connect, launch } from './helpers'
+import { CLUSTERS, connect, launch, pasteInto, suggest } from './helpers'
 
 test.describe.configure({ mode: 'serial' })
 let app: ElectronApplication
@@ -47,4 +47,30 @@ test('the choice survives a restart; Settings offers Match system', async () => 
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await page.getByRole('group', { name: 'Theme' }).getByRole('button', { name: 'Match system' }).click()
   expect(await app.evaluate(({ nativeTheme }) => nativeTheme.themeSource)).toBe('system')
+})
+
+test('light mode: the selected suggestion is readable', async () => {
+  await page.getByRole('group', { name: 'Theme' }).getByRole('button', { name: 'Light' }).click()
+  await page.getByRole('button', { name: 'Query workspace' }).click()
+  await page.getByRole('button', { name: 'New request' }).click()
+  const ed = page.locator('.block').last().locator('.monaco-editor')
+  await expect(ed).toHaveClass(/focused/)
+  await pasteInto(app, page, ed, 'GET listings-v7/_search\n{\n  "query": {\n    r\n  }\n}')
+  await page.keyboard.press('Meta+ArrowUp')
+  for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('End')
+  await suggest(page, 'range')
+  const row = page.locator('.suggest-widget.visible .monaco-list-row.focused').first()
+  const [fg, bg] = await row.evaluate((r) => {
+    const label = r.querySelector('.label-name') as HTMLElement
+    return [getComputedStyle(label).color, getComputedStyle(r).backgroundColor]
+  })
+  // Dark text on the pale amber selection (was near-white before).
+  const lum = (rgb: string) => {
+    const [r, g, b] = rgb.match(/\d+/g)!.slice(0, 3).map(Number).map((c) => c / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!
+  }
+  const contrast = (lum(bg) + 0.05) / (lum(fg) + 0.05)
+  expect(contrast).toBeGreaterThan(7)
+  await page.screenshot({ path: 'e2e/screens/72-light-suggest.png' })
 })

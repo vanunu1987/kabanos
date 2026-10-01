@@ -576,3 +576,5 @@ body.resizing iframe, body.resizing .monaco-editor { pointer-events: none; }
 .progress.det.export span { background: var(--accent); }
 .about-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
 .theme-toggle { flex-shrink: 0; }
+.tree-section-btns { display: inline-flex; gap: 2px; margin-left: auto; }
+.tree-compact-actions { display: flex; justify-content: flex-end; margin-bottom: -4px; }

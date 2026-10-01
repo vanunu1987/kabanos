@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatBytes, isSystemAlias, isSystemDataStream, isSystemIndex, isSystemTemplate, type ClusterTree, type Health } from '@shared/meta'
 import type { ConnectionConfig } from '@shared/types'
 import { Icon } from '../../shell/icons'
@@ -75,13 +75,37 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
     ].filter((s) => s.rows.length > 0 || s.name === 'Indices')
   }, [tree, filter, hideSystem, hideClosed, sort])
 
+  const allCollapsed = sections.every((sec) => collapsed.has(sec.name))
+  const sectionButtons = (
+    <span className="tree-section-btns">
+      <button className="icon-btn xs" aria-label="Collapse all sections" title="Collapse all sections" disabled={allCollapsed} onClick={() => setCollapsed(new Set(sections.map((sec) => sec.name)))}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M7 4l5 5 5-5M7 20l5-5 5 5" />
+        </svg>
+      </button>
+      <button className="icon-btn xs" aria-label="Expand all sections" title="Expand all sections" disabled={collapsed.size === 0} onClick={() => setCollapsed(new Set())}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M7 9l5-5 5 5M7 15l5 5 5-5" />
+        </svg>
+      </button>
+    </span>
+  )
+
   const toggle = (set: Set<string>, name: string) => {
     const n = new Set(set)
     if (n.has(name)) n.delete(name)
     else n.add(name)
     return n
   }
-  const LIMIT = 12
+  // Unfiltered sections show a dozen rows; filtered ones up to 100 — both with "+ N more".
+  const LIMIT = filter ? 100 : 12
+  // Starting a new filter opens every section once so matches are visible; collapsing still works after.
+  const wasFiltering = useRef(false)
+  useEffect(() => {
+    const filtering = filter.trim() !== ''
+    if (filtering && !wasFiltering.current) setCollapsed(new Set())
+    wasFiltering.current = filtering
+  }, [filter])
 
   return (
     <aside className={`sidebar explorer-tree${compact ? ' compact' : ''}`}>
@@ -89,7 +113,10 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
         <div className="tree-head">
           <div className="tree-title">
             <span className="dot" style={{ background: HEALTH_COLOR[tree.health] }} />
-            <span>{tree.clusterName ?? conn.name}</span>
+            <span className="ellipsis" title={tree.clusterName ?? conn.name}>
+              {tree.clusterName ?? conn.name}
+            </span>
+            {sectionButtons}
           </div>
           <div className="hint">
             {conn.detected ? `${conn.detected.engine === 'opensearch' ? 'OpenSearch' : 'Elasticsearch'} ${conn.detected.version}` : conn.name} · {tree.health} · {tree.nodes} node
@@ -98,6 +125,7 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
         </div>
       )}
       <div className="tree-tools">
+        {compact && <div className="tree-compact-actions">{sectionButtons}</div>}
         <label className="filter" style={{ margin: 0 }}>
           {Icon.search()}
           <input aria-label="Filter indices, aliases and templates" placeholder={compact ? 'Filter' : 'Filter indices, aliases, templates'} value={filter} onChange={(e) => setFilter(e.target.value)} />
@@ -118,8 +146,8 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
       </div>
       <div className="sidebar-scroll tree-scroll">
         {sections.map((sec) => {
-          const isCollapsed = collapsed.has(sec.name) && !filter
-          const rows = showAll.has(sec.name) || filter ? sec.rows : sec.rows.slice(0, LIMIT)
+          const isCollapsed = collapsed.has(sec.name)
+          const rows = showAll.has(sec.name) ? sec.rows : sec.rows.slice(0, LIMIT)
           return (
             <div key={sec.name} className="tree-section">
               <button className={`tree-sec-head${isCollapsed ? ' collapsed' : ''}`} onClick={() => setCollapsed((c) => toggle(c, sec.name))} aria-expanded={!isCollapsed}>
@@ -140,7 +168,7 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
                     )
                   })}
                   {sec.rows.length === 0 && <div className="tree-empty">{filter ? 'No matches' : 'None'}</div>}
-                  {!filter && sec.rows.length > LIMIT && (
+                  {sec.rows.length > LIMIT && (
                     <button className="tree-row more" onClick={() => setShowAll((s) => toggle(s, sec.name))}>
                       <span className="tree-label">{showAll.has(sec.name) ? 'Show less' : `+ ${sec.rows.length - LIMIT} more`}</span>
                     </button>

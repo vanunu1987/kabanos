@@ -50,8 +50,13 @@ monaco.editor.defineTheme('kabanos-dark', {
     'editorWidget.border': '#3A3F49',
     'editorSuggestWidget.background': '#1D2027',
     'editorSuggestWidget.border': '#3A3F49',
+    'editorSuggestWidget.foreground': '#C9CFD9',
     'editorSuggestWidget.selectedBackground': '#2B2512',
+    'editorSuggestWidget.selectedForeground': '#E6E8EC',
+    'editorSuggestWidget.selectedIconForeground': '#F2B544',
     'editorSuggestWidget.highlightForeground': '#F2B544',
+    'editorSuggestWidget.focusHighlightForeground': '#FFD27A',
+    'list.hoverBackground': '#232832',
     'scrollbarSlider.background': '#2A2F3966'
   }
 })
@@ -73,8 +78,18 @@ monaco.editor.defineTheme('kabanos-light', {
     'editorWidget.border': '#CFD4DC',
     'editorSuggestWidget.background': '#FFFFFF',
     'editorSuggestWidget.border': '#CFD4DC',
-    'editorSuggestWidget.selectedBackground': '#FCF0D8',
-    'editorSuggestWidget.highlightForeground': '#B5770A',
+    // Explicit row colors: Monaco's defaults give light text on the pale selection background.
+    'editorSuggestWidget.foreground': '#353C49',
+    'editorSuggestWidget.selectedBackground': '#FCEBCB',
+    'editorSuggestWidget.selectedForeground': '#1A1D23',
+    'editorSuggestWidget.selectedIconForeground': '#965F04',
+    'editorSuggestWidget.highlightForeground': '#965F04',
+    'editorSuggestWidget.focusHighlightForeground': '#7A4D00',
+    'list.hoverBackground': '#F3F4F7',
+    'list.hoverForeground': '#1A1D23',
+    'editorHoverWidget.background': '#FFFFFF',
+    'editorHoverWidget.foreground': '#353C49',
+    'editorHoverWidget.border': '#CFD4DC',
     'scrollbarSlider.background': '#B7BDC855'
   }
 })
