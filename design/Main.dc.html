@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Connections</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit}
+a{color:#F2B544}a:hover{color:#FFD27A}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
+.ab{width:44px;height:44px;border:none;border-radius:10px;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center}
+.ab.on{background:#232832;color:#F2B544}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;background:#121419;color:#E6E8EC;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="height:46px;flex-shrink:0;display:flex;align-items:center;gap:20px;padding:0 14px;background:#0E1014;border-bottom:1px solid #262A33">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:12px;height:12px;border-radius:6px;background:#FF5F57"></span><span style="width:12px;height:12px;border-radius:6px;background:#FEBC2E"></span><span style="width:12px;height:12px;border-radius:6px;background:#28C840"></span></div>
+<div style="display:flex;align-items:center;gap:8px"><svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true"><rect x="6" y="6" width="88" height="88" rx="22" fill="#16191F"></rect><g fill="none" stroke-linecap="round"><path d="M40 32h38" stroke="#F2B544" stroke-width="14"></path><path d="M32 50h38" stroke="#F7CF7E" stroke-width="14"></path><path d="M24 68h38" stroke="#4DC4D6" stroke-width="14"></path></g></svg><span style="font-weight:600;letter-spacing:0.2px">kabanos</span></div>
+<div style="color:#8B94A3">Connections</div>
+<div style="flex-grow:1"></div>
+<button style="width:320px;height:30px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#8B94A3;display:flex;align-items:center;gap:8px;padding:0 10px">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span style="flex-grow:1;text-align:left">Jump to connection, index, query…</span><span class="mono" style="font-size:11px">⌘K</span>
+</button>
+</div>
+
+<div style="flex-grow:1;display:flex;min-height:0">
+
+<nav aria-label="Main" style="width:64px;flex-shrink:0;background:#0E1014;border-right:1px solid #262A33;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0">
+<button class="ab on" aria-label="Connections"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0zM12 16v5"></path></svg></button>
+<button class="ab" aria-label="Explorer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path></svg></button>
+<button class="ab" aria-label="Query workspace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg></button>
+<button class="ab" aria-label="Routines"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"></path><path d="M16 15l5 3-5 3z"></path></svg></button>
+<button class="ab" aria-label="Stack management"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></button>
+<div style="flex-grow:1"></div>
+<button class="ab" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+</nav>
+
+<aside style="width:320px;flex-shrink:0;background:#16191F;border-right:1px solid #262A33;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px">
+<div style="font-size:15px;font-weight:600">Connections</div>
+<button aria-label="New connection" style="width:30px;height:30px;border:1px solid #2A2F39;border-radius:8px;background:#1D2027;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+<div style="padding:0 16px 12px">
+<label style="display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid #2A2F39;border-radius:8px;background:#121419;color:#8B94A3">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input aria-label="Filter connections" placeholder="Filter connections" style="flex-grow:1;border:none;outline:none;background:transparent;color:#E6E8EC">
+</label>
+</div>
+<div style="flex-grow:1;overflow:hidden;padding:0 8px;display:flex;flex-direction:column;gap:14px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:2px">
+<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;color:#8B94A3;font-size:11px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
+<span>{{g.name}}</span><span style="margin-left:auto;font-weight:500">{{g.count}}</span>
+</div>
+<sc-for list="{{g.items}}" as="c" hint-placeholder-count="2">
+<button style="{{c.rowStyle}}">
+<span style="{{c.dotStyle}}"></span>
+<span style="display:flex;flex-direction:column;gap:2px;flex-grow:1;min-width:0;text-align:left">
+<span style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{c.name}}</span>
+<span class="mono" style="font-size:11px;color:#8B94A3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{c.host}}</span>
+</span>
+<span class="mono" style="{{c.engineStyle}}">{{c.engine}}</span>
+</button>
+</sc-for>
+</div>
+</sc-for>
+</div>
+<div style="padding:12px 16px;border-top:1px solid #262A33;display:flex;gap:8px;color:#8B94A3;font-size:12px">
+<button style="border:none;background:transparent;color:#9AA3B2;padding:6px 0">Import…</button>
+<button style="border:none;background:transparent;color:#9AA3B2;padding:6px 0;margin-left:12px">Export…</button>
+</div>
+</aside>
+
+<main style="flex-grow:1;min-width:0;overflow:hidden;padding:36px 48px;display:flex;gap:40px">
+<div style="flex-grow:1;max-width:760px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h1 style="margin:0;font-size:24px;font-weight:600">New connection</h1>
+<p style="margin:0;color:#9AA3B2;font-size:14px">Paste a cluster URL. Username and password inside the URL are split out and stored in the macOS Keychain — never in plain text.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<label for="url" style="font-weight:500">Connection URL</label>
+<div style="display:flex;gap:8px">
+<input id="url" class="mono" value="https://elastic:••••••••@search-prod.internal:9243" style="flex-grow:1;height:44px;padding:0 14px;border:1px solid #F2B544;border-radius:9px;background:#0E1014;color:#E6E8EC;font-size:13px;outline:none">
+<button style="height:44px;padding:0 14px;border:1px solid #2A2F39;border-radius:9px;background:#1D2027;color:#C9CFD9">Paste from clipboard</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(5, minmax(0, 1fr));gap:8px">
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:8px;background:#191C22"><span style="font-size:11px;color:#8B94A3">Scheme</span><span class="mono" style="font-size:12px">https</span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:8px;background:#191C22;grid-column:span 2"><span style="font-size:11px;color:#8B94A3">Host</span><span class="mono" style="font-size:12px">search-prod.internal</span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:8px;background:#191C22"><span style="font-size:11px;color:#8B94A3">Port</span><span class="mono" style="font-size:12px">9243</span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:8px;background:#191C22"><span style="font-size:11px;color:#8B94A3">User</span><span class="mono" style="font-size:12px">elastic</span></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="font-weight:500">Authentication</div>
+<div role="group" aria-label="Authentication method" style="display:flex;padding:3px;gap:3px;border-radius:9px;background:#0E1014;border:1px solid #262A33;align-self:flex-start">
+<button style="height:32px;padding:0 14px;border:none;border-radius:7px;background:#2A2F39;color:#E6E8EC;font-weight:500">From URL</button>
+<button style="height:32px;padding:0 14px;border:none;border-radius:7px;background:transparent;color:#9AA3B2">Basic</button>
+<button style="height:32px;padding:0 14px;border:none;border-radius:7px;background:transparent;color:#9AA3B2">API key</button>
+<button style="height:32px;padding:0 14px;border:none;border-radius:7px;background:transparent;color:#9AA3B2">AWS SigV4</button>
+<button style="height:32px;padding:0 14px;border:none;border-radius:7px;background:transparent;color:#9AA3B2">Cloud ID</button>
+<button style="height:32px;padding:0 14px;border:none;border-radius:7px;background:transparent;color:#9AA3B2">None</button>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:16px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="cname" style="font-weight:500">Name</label>
+<input id="cname" value="Search · Production" style="height:38px;padding:0 12px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#E6E8EC;outline:none">
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="folder" style="font-weight:500">Folder</label>
+<select id="folder" style="height:38px;padding:0 10px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#E6E8EC"><option>Production</option><option>Staging</option><option>Local</option></select>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="engine" style="font-weight:500">Engine</label>
+<select id="engine" style="height:38px;padding:0 10px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#E6E8EC"><option>Auto-detect (Elasticsearch / OpenSearch)</option><option>Elasticsearch</option><option>OpenSearch</option></select>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="font-weight:500">Color tag</div>
+<div style="display:flex;gap:10px;align-items:center;height:38px">
+<button aria-label="Amber" style="width:26px;height:26px;border-radius:13px;border:2px solid #E6E8EC;background:#F2B544"></button>
+<button aria-label="Red" style="width:26px;height:26px;border-radius:13px;border:2px solid transparent;background:#FF7A70"></button>
+<button aria-label="Teal" style="width:26px;height:26px;border-radius:13px;border:2px solid transparent;background:#4DC4D6"></button>
+<button aria-label="Blue" style="width:26px;height:26px;border-radius:13px;border:2px solid transparent;background:#6AA8FF"></button>
+<button aria-label="Green" style="width:26px;height:26px;border-radius:13px;border:2px solid transparent;background:#5CCB8A"></button>
+<span style="color:#8B94A3;font-size:12px;margin-left:6px">Production tabs get a warning stripe</span>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid #262A33;border-radius:10px;background:#16191F">
+<label style="display:flex;align-items:center;gap:10px"><input type="checkbox" checked style="width:16px;height:16px;accent-color:#F2B544">Verify TLS certificate</label>
+<div style="display:flex;align-items:center;gap:10px;color:#9AA3B2"><span>Custom CA certificate</span><button style="height:28px;padding:0 10px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;color:#C9CFD9">Choose file…</button><span class="mono" style="font-size:12px">none</span></div>
+<button style="align-self:flex-start;border:none;background:transparent;padding:4px 0;color:#9AA3B2;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg>Advanced — proxy / SSH tunnel, timeouts, compression, default headers, read-only mode</button>
+</div>
+
+<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;background:#15261D;border:1px solid #24503A">
+<span style="width:10px;height:10px;border-radius:5px;background:#5CCB8A"></span>
+<div style="display:flex;flex-direction:column;gap:2px">
+<span style="font-weight:500">Connected · Elasticsearch 8.15.2</span>
+<span style="color:#A9C9B6;font-size:12px">cluster search-prod · status green · 9 nodes · 128 indices · 14 aliases · 9 index templates</span>
+</div>
+</div>
+
+<div style="display:flex;gap:10px;justify-content:flex-end">
+<button style="height:40px;padding:0 18px;border:1px solid #2A2F39;border-radius:9px;background:#1D2027;color:#E6E8EC">Test connection</button>
+<button style="height:40px;padding:0 18px;border:1px solid #2A2F39;border-radius:9px;background:#1D2027;color:#E6E8EC">Save</button>
+<button style="height:40px;padding:0 20px;border:none;border-radius:9px;background:#F2B544;color:#1A1405;font-weight:600">Save &amp; connect</button>
+</div>
+</div>
+
+<div style="width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding-top:4px">
+<div style="font-size:11px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:#8B94A3">Engine detection</div>
+<div style="padding:14px;border-radius:10px;background:#16191F;border:1px solid #262A33;display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#C9CFD9;line-height:1.5">
+<div class="mono" style="font-size:12px;color:#8B94A3">GET /</div>
+<div>Reads <span class="mono" style="color:#E7C58B">version.distribution</span>. When it says <span class="mono" style="color:#E7C58B">opensearch</span> the tab gets an OS badge, autocomplete switches to OpenSearch endpoints, and user management uses the Security plugin API.</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<span class="mono" style="font-size:11px;padding:3px 8px;border-radius:6px;background:#2B2512;color:#F2B544">ES 7.x · 8.x · 9.x</span>
+<span class="mono" style="font-size:11px;padding:3px 8px;border-radius:6px;background:#10272B;color:#4DC4D6">OS 1.x · 2.x · 3.x</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const colors = { amber: '#F2B544', red: '#FF7A70', teal: '#4DC4D6', blue: '#6AA8FF', green: '#5CCB8A', grey: '#8B94A3' };
+const mk = (name, host, engine, color, active) => ({
+name, host, engine,
+rowStyle: 'display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:none;border-radius:8px;background:' + (active ? '#232832' : 'transparent') + ';color:#E6E8EC',
+dotStyle: 'width:8px;height:8px;border-radius:4px;flex-shrink:0;background:' + colors[color],
+engineStyle: 'font-size:10.5px;padding:2px 6px;border-radius:5px;flex-shrink:0;' + (engine.startsWith('OS') ? 'background:#10272B;color:#4DC4D6' : 'background:#2B2512;color:#F2B544')
+});
+return {
+groups: [
+{ name: 'Favorites', count: 2, items: [mk('Search · Production', 'search-prod.internal:9243', 'ES 8.15', 'amber', true), mk('Logs · OpenSearch', 'logs.eu-west-1.es.amazonaws.com', 'OS 2.17', 'teal')] },
+{ name: 'Production', count: 3, items: [mk('Users · Production', 'users-prod.internal:9200', 'ES 8.15', 'red'), mk('Analytics', 'analytics.internal:9200', 'ES 7.17', 'red'), mk('Audit trail', 'audit.internal:9200', 'OS 2.11', 'red')] },
+{ name: 'Staging', count: 2, items: [mk('Search · Staging', 'search-stg.internal:9243', 'ES 8.15', 'blue'), mk('Logs · Staging', 'logs-stg.internal:9200', 'OS 2.17', 'blue')] },
+{ name: 'Local', count: 1, items: [mk('Docker localhost', 'localhost:9200', 'ES 9.0', 'green')] }
+]
+};
+}
+}
+</script>
+</body>
+</html>

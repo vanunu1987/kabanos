@@ -1,0 +1,41 @@
+# Local clusters for development and integration tests.
+#   es8  https://localhost:9200  elastic / sift-dev-pass   (security + self-signed TLS, auto-configured)
+#   es9  http://localhost:9202   elastic / sift-dev-pass   (security on, plain HTTP)
+#   os2  https://localhost:9201  admin   / Sift-dev-Pass_42 (security plugin demo certs)
+# CA fingerprint for es8:  npm run clusters:fingerprint
+name: kabanos
+services:
+  es8:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.22
+    container_name: kabanos-es8
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=sift-dev-pass
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - cluster.routing.allocation.disk.threshold_enabled=false # dev only: don't refuse shards on a full Docker disk
+    ports: ["9200:9200"]
+    mem_limit: 1g
+
+  es9:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.3
+    container_name: kabanos-es9
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=sift-dev-pass
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - cluster.routing.allocation.disk.threshold_enabled=false # dev only: don't refuse shards on a full Docker disk
+    ports: ["9202:9200"]
+    mem_limit: 1g
+
+  os2:
+    image: opensearchproject/opensearch:2.19.6
+    container_name: kabanos-os2
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Sift-dev-Pass_42
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    ports: ["9201:9200"]
+    mem_limit: 1g

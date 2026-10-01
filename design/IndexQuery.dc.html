@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Index view — query</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit}
+a{color:#F2B544}a:hover{color:#FFD27A}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
+.ab{width:44px;height:44px;border:none;border-radius:10px;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center}
+.ab.on{background:#232832;color:#F2B544}
+.tk{color:#9CC4FF}.ts{color:#E7C58B}.tn{color:#C7A2FF}.tp{color:#7C8595}
+.ln{display:inline-block;width:32px;padding-right:12px;text-align:right;color:#4E5563}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;background:#121419;color:#E6E8EC;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="height:46px;flex-shrink:0;display:flex;align-items:center;gap:20px;padding:0 14px;background:#0E1014;border-bottom:1px solid #262A33">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:12px;height:12px;border-radius:6px;background:#FF5F57"></span><span style="width:12px;height:12px;border-radius:6px;background:#FEBC2E"></span><span style="width:12px;height:12px;border-radius:6px;background:#28C840"></span></div>
+<div style="display:flex;align-items:center;gap:4px;margin-left:8px">
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:#20242C;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#F2B544"></span><span style="font-weight:500">Search · Production</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#2B2512;color:#F2B544">ES 8.15</span></button>
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#9AA3B2;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#4DC4D6"></span><span>Logs · OpenSearch</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#10272B;color:#4DC4D6">OS 2.17</span></button>
+</div>
+<div style="flex-grow:1"></div>
+<button style="width:320px;height:30px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#8B94A3;display:flex;align-items:center;gap:8px;padding:0 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex-grow:1;text-align:left">Jump to index, query, routine…</span><span class="mono" style="font-size:11px">⌘K</span></button>
+</div>
+
+<div style="flex-grow:1;display:flex;min-height:0">
+<nav aria-label="Main" style="width:64px;flex-shrink:0;background:#0E1014;border-right:1px solid #262A33;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0">
+<button class="ab" aria-label="Connections"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0zM12 16v5"></path></svg></button>
+<button class="ab on" aria-label="Explorer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path></svg></button>
+<button class="ab" aria-label="Query workspace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg></button>
+<button class="ab" aria-label="Routines"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"></path><path d="M16 15l5 3-5 3z"></path></svg></button>
+<button class="ab" aria-label="Stack management"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></button>
+<div style="flex-grow:1"></div>
+<button class="ab" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+</nav>
+
+<aside style="width:260px;flex-shrink:0;background:#16191F;border-right:1px solid #262A33;display:flex;flex-direction:column;padding:12px 8px;gap:10px">
+<label style="display:flex;align-items:center;gap:8px;height:32px;margin:0 8px;padding:0 10px;border:1px solid #2A2F39;border-radius:8px;background:#121419;color:#8B94A3">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input aria-label="Filter" placeholder="Filter" style="flex-grow:1;border:none;outline:none;background:transparent;color:#E6E8EC;font-size:12px">
+</label>
+<sc-for list="{{tree}}" as="sec" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:1px">
+<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;color:#C9CFD9;font-weight:600;font-size:12px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>{{sec.name}}<span style="margin-left:auto;color:#8B94A3;font-weight:500">{{sec.count}}</span></div>
+<sc-for list="{{sec.items}}" as="it" hint-placeholder-count="4">
+<button class="mono" style="{{it.rowStyle}}">{{it.name}}</button>
+</sc-for>
+</div>
+</sc-for>
+</aside>
+
+<main style="flex-grow:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+<div style="height:40px;flex-shrink:0;display:flex;align-items:flex-end;gap:2px;padding:0 12px;background:#0E1014;border-bottom:1px solid #262A33">
+<button class="mono" style="height:34px;padding:0 14px;border:1px solid #262A33;border-bottom:none;border-radius:8px 8px 0 0;background:#121419;font-size:12px;display:flex;align-items:center;gap:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B94A3" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18M9 10v10"></path></svg>listings-v7</button>
+<button class="mono" style="height:34px;padding:0 14px;border:none;background:transparent;color:#9AA3B2;font-size:12px;display:flex;align-items:center;gap:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>users</button>
+</div>
+
+<div style="padding:14px 20px 0;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #262A33">
+<div style="display:flex;align-items:center;gap:10px">
+<h1 class="mono" style="margin:0;font-size:18px;font-weight:500">listings-v7</h1>
+<span style="font-size:12px;color:#8B94A3">12,418,203 docs · 38.2 GB · green</span>
+</div>
+<div role="tablist" style="display:flex;gap:22px">
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;border-bottom:2px solid #F2B544;font-weight:500">Query</button>
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Documents</button>
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Mapping</button>
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Aliases</button>
+<button role="tab" style="border:none;background:transparent;padding:6px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Settings</button>
+</div>
+</div>
+
+<div style="padding:14px 20px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #262A33;position:relative">
+<div style="display:flex;gap:8px;align-items:center">
+<button class="mono" aria-haspopup="listbox" style="height:40px;width:110px;padding:0 12px;border:1px solid #F2B544;border-radius:9px;background:#2B2512;color:#F2B544;font-weight:500;display:flex;align-items:center;justify-content:space-between">POST<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+<div class="mono" style="flex-grow:1;height:40px;display:flex;align-items:center;border:1px solid #2A2F39;border-radius:9px;background:#0E1014;font-size:13px;overflow:hidden">
+<span style="padding:0 4px 0 14px;color:#8B94A3">/listings-v7/</span>
+<input aria-label="Endpoint path" value="_search?track_total_hits=true" style="flex-grow:1;height:38px;border:none;outline:none;background:transparent;color:#E6E8EC">
+</div>
+<button style="height:40px;padding:0 18px;border:none;border-radius:9px;background:#F2B544;color:#1A1405;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Run</button>
+<button style="height:40px;padding:0 14px;border:1px solid #2A2F39;border-radius:9px;background:#1D2027">Save to library</button>
+</div>
+<div style="display:flex;gap:6px;align-items:center">
+<span style="color:#8B94A3;font-size:12px;margin-right:4px">Endpoints</span>
+<button class="mono" style="height:24px;padding:0 9px;border:1px solid #3A3F49;border-radius:6px;background:#232832;font-size:11.5px">_search</button>
+<button class="mono" style="height:24px;padding:0 9px;border:1px solid #2A2F39;border-radius:6px;background:transparent;color:#9AA3B2;font-size:11.5px">_count</button>
+<button class="mono" style="height:24px;padding:0 9px;border:1px solid #2A2F39;border-radius:6px;background:transparent;color:#9AA3B2;font-size:11.5px">_doc/{id}</button>
+<button class="mono" style="height:24px;padding:0 9px;border:1px solid #2A2F39;border-radius:6px;background:transparent;color:#9AA3B2;font-size:11.5px">_mapping</button>
+<button class="mono" style="height:24px;padding:0 9px;border:1px solid #2A2F39;border-radius:6px;background:transparent;color:#9AA3B2;font-size:11.5px">_update_by_query</button>
+<button class="mono" style="height:24px;padding:0 9px;border:1px solid #2A2F39;border-radius:6px;background:transparent;color:#9AA3B2;font-size:11.5px">_delete_by_query</button>
+<button class="mono" style="height:24px;padding:0 9px;border:1px solid #2A2F39;border-radius:6px;background:transparent;color:#9AA3B2;font-size:11.5px">_settings</button>
+</div>
+
+<div role="listbox" aria-label="HTTP method" style="position:absolute;left:20px;top:60px;width:230px;border:1px solid #3A3F49;border-radius:10px;background:#1D2027;box-shadow:0 12px 32px rgba(0,0,0,0.5);padding:5px;display:flex;flex-direction:column;gap:1px;z-index:2">
+<div role="option" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px"><span class="mono" style="width:56px;color:#5CCB8A;font-weight:500">GET</span><span style="color:#9AA3B2;font-size:12px">read</span></div>
+<div role="option" aria-selected="true" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;background:#2B2512"><span class="mono" style="width:56px;color:#F2B544;font-weight:500">POST</span><span style="color:#C9CFD9;font-size:12px">search / create</span></div>
+<div role="option" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px"><span class="mono" style="width:56px;color:#6AA8FF;font-weight:500">PUT</span><span style="color:#9AA3B2;font-size:12px">create / replace</span></div>
+<div role="option" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px"><span class="mono" style="width:56px;color:#B6A2FF;font-weight:500">HEAD</span><span style="color:#9AA3B2;font-size:12px">exists check</span></div>
+<div style="height:1px;background:#2A2F39;margin:4px 6px"></div>
+<div role="option" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px"><span class="mono" style="width:56px;color:#FF7A70;font-weight:500">DELETE</span><span style="color:#9AA3B2;font-size:12px">asks to confirm on prod</span></div>
+</div>
+</div>
+
+<div style="flex-grow:1;min-height:0;display:flex">
+<div style="width:460px;flex-shrink:0;border-right:1px solid #262A33;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #262A33;font-size:12px;color:#9AA3B2"><span style="color:#E6E8EC;font-weight:500">Body</span><span>JSON · autocompletes fields of listings-v7</span><button style="margin-left:auto;border:none;background:transparent;color:#9AA3B2;padding:0">Format</button></div>
+<div class="mono" style="padding:10px 0;font-size:12.5px;line-height:21px;white-space:pre">
+<div><span class="ln">1</span>{</div>
+<div><span class="ln">2</span>  <span class="tk">"size"</span>: <span class="tn">20</span>,</div>
+<div><span class="ln">3</span>  <span class="tk">"query"</span>: {</div>
+<div><span class="ln">4</span>    <span class="tk">"bool"</span>: {</div>
+<div><span class="ln">5</span>      <span class="tk">"filter"</span>: [</div>
+<div><span class="ln">6</span>        { <span class="tk">"term"</span>: { <span class="tk">"city.name"</span>: <span class="ts">"[City]"</span> } },</div>
+<div><span class="ln">7</span>        { <span class="tk">"range"</span>: { <span class="tk">"price"</span>: { <span class="tk">"lte"</span>: <span class="tn">2000000</span> } } }</div>
+<div><span class="ln">8</span>      ]</div>
+<div><span class="ln">9</span>    }</div>
+<div><span class="ln">10</span>  },</div>
+<div><span class="ln">11</span>  <span class="tk">"sort"</span>: [{ <span class="tk">"created_at"</span>: <span class="ts">"desc"</span> }]</div>
+<div><span class="ln">12</span>}</div>
+</div>
+</div>
+
+<div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;background:#0F1115">
+<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #262A33">
+<span class="mono" style="font-size:11.5px;padding:2px 7px;border-radius:5px;background:#15261D;color:#5CCB8A">200</span>
+<span style="font-size:12px;color:#9AA3B2">1–20 of 48,213 hits · 27 ms</span>
+<div style="flex-grow:1"></div>
+<div role="group" aria-label="Result view" style="display:flex;padding:2px;border-radius:7px;background:#16191F;border:1px solid #262A33">
+<button style="height:24px;padding:0 10px;border:none;border-radius:5px;background:#2A2F39;font-size:12px">Documents</button>
+<button style="height:24px;padding:0 10px;border:none;border-radius:5px;background:transparent;color:#9AA3B2;font-size:12px">Table</button>
+<button style="height:24px;padding:0 10px;border:none;border-radius:5px;background:transparent;color:#9AA3B2;font-size:12px">JSON</button>
+</div>
+<button aria-label="Previous page" style="width:26px;height:26px;border:1px solid #2A2F39;border-radius:6px;background:#16191F;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<button aria-label="Next page" style="width:26px;height:26px;border:1px solid #2A2F39;border-radius:6px;background:#16191F;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden">
+<sc-for list="{{docs}}" as="d" hint-placeholder-count="3">
+<div style="border:1px solid #262A33;border-radius:9px;background:#16191F;padding:10px 14px;display:flex;flex-direction:column;gap:3px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="mono" style="font-size:11.5px;color:#8B94A3">_id</span><span class="mono" style="font-size:12px;color:#E7C58B">{{d.id}}</span><span style="margin-left:auto;display:flex;gap:12px;font-size:12px;color:#9AA3B2"><button style="border:none;background:transparent;padding:0">Edit</button><button style="border:none;background:transparent;padding:0">Copy</button><button style="border:none;background:transparent;padding:0">Clone</button></span></div>
+<sc-for list="{{d.fields}}" as="kv" hint-placeholder-count="4">
+<div class="mono" style="display:flex;gap:10px;font-size:12px;line-height:19px"><span style="width:110px;flex-shrink:0;color:#9CC4FF">{{kv.k}}</span><span style="{{kv.style}}">{{kv.v}}</span></div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const row = (name, active) => ({ name, rowStyle: 'width:100%;text-align:left;padding:5px 8px 5px 26px;border:none;border-radius:6px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:' + (active ? '#232832' : 'transparent') + ';color:' + (active ? '#E6E8EC' : '#C9CFD9') });
+const kv = (k, v, t) => ({ k, v, style: 'color:' + (t === 'n' ? '#C7A2FF' : t === 'd' ? '#5CCB8A' : '#E7C58B') });
+return {
+tree: [
+{ name: 'Indices', count: 128, items: [row('listings-v7', true), row('listings-v6'), row('users-2026.09'), row('search-logs-2026.09.30')] },
+{ name: 'Aliases', count: 14, items: [row('listings'), row('listings-read'), row('users')] },
+{ name: 'Index templates', count: 9, items: [row('listings-template'), row('search-logs-template')] }
+],
+docs: [
+{ id: 'a81f-22c9', fields: [kv('title', '"[Listing title]"'), kv('city.name', '"[City]"'), kv('price', '1850000', 'n'), kv('status', '"active"'), kv('created_at', '2026-09-29T08:14:00Z', 'd')] },
+{ id: '7c0d-91ab', fields: [kv('title', '"[Listing title]"'), kv('city.name', '"[City]"'), kv('price', '1420000', 'n'), kv('status', '"active"'), kv('created_at', '2026-09-28T17:42:00Z', 'd')] },
+{ id: '3e55-0f12', fields: [kv('title', '"[Listing title]"'), kv('city.name', '"[City]"'), kv('price', '990000', 'n'), kv('status', '"active"'), kv('created_at', '2026-09-28T11:05:00Z', 'd')] }
+]
+};
+}
+}
+</script>
+</body>
+</html>

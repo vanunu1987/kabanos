@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Query workspace</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit}
+a{color:#F2B544}a:hover{color:#FFD27A}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
+.ab{width:44px;height:44px;border:none;border-radius:10px;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center}
+.ab.on{background:#232832;color:#F2B544}
+.tk{color:#9CC4FF}.ts{color:#E7C58B}.tn{color:#C7A2FF}.tp{color:#7C8595}
+.ln{display:inline-block;width:36px;padding-right:12px;text-align:right;color:#4E5563}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;background:#121419;color:#E6E8EC;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="height:46px;flex-shrink:0;display:flex;align-items:center;gap:20px;padding:0 14px;background:#0E1014;border-bottom:1px solid #262A33">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:12px;height:12px;border-radius:6px;background:#FF5F57"></span><span style="width:12px;height:12px;border-radius:6px;background:#FEBC2E"></span><span style="width:12px;height:12px;border-radius:6px;background:#28C840"></span></div>
+<div style="display:flex;align-items:center;gap:4px;margin-left:8px">
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:#20242C;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#F2B544"></span><span style="font-weight:500">Search · Production</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#2B2512;color:#F2B544">ES 8.15</span></button>
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#9AA3B2;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#4DC4D6"></span><span>Logs · OpenSearch</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#10272B;color:#4DC4D6">OS 2.17</span></button>
+</div>
+<div style="flex-grow:1"></div>
+<button style="width:320px;height:30px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#8B94A3;display:flex;align-items:center;gap:8px;padding:0 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex-grow:1;text-align:left">Jump to index, query, routine…</span><span class="mono" style="font-size:11px">⌘K</span></button>
+</div>
+
+<div style="flex-grow:1;display:flex;min-height:0">
+<nav aria-label="Main" style="width:64px;flex-shrink:0;background:#0E1014;border-right:1px solid #262A33;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0">
+<button class="ab" aria-label="Connections"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0zM12 16v5"></path></svg></button>
+<button class="ab" aria-label="Explorer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path></svg></button>
+<button class="ab on" aria-label="Query workspace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg></button>
+<button class="ab" aria-label="Routines"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"></path><path d="M16 15l5 3-5 3z"></path></svg></button>
+<button class="ab" aria-label="Stack management"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></button>
+<div style="flex-grow:1"></div>
+<button class="ab" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+</nav>
+
+<aside style="width:300px;flex-shrink:0;background:#16191F;border-right:1px solid #262A33;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px">
+<div style="font-size:14px;font-weight:600">Query library</div>
+<div style="display:flex;gap:6px">
+<button aria-label="New folder" style="width:28px;height:28px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></button>
+<button aria-label="New query" style="width:28px;height:28px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+</div>
+<div style="padding:0 16px 10px;display:flex;flex-direction:column;gap:8px">
+<label style="display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid #F2B544;border-radius:8px;background:#121419;color:#8B94A3">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input aria-label="Search queries" placeholder="Search name, body, index, field, #tag" style="flex-grow:1;border:none;outline:none;background:transparent;color:#E6E8EC">
+<span class="mono" style="font-size:11px">⌘F</span>
+</label>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button style="height:24px;padding:0 10px;border:1px solid #3A3F49;border-radius:12px;background:#232832;font-size:12px">All</button>
+<button style="height:24px;padding:0 10px;border:1px solid #2A2F39;border-radius:12px;background:transparent;color:#9AA3B2;font-size:12px">Pinned</button>
+<button style="height:24px;padding:0 10px;border:1px solid #2A2F39;border-radius:12px;background:transparent;color:#9AA3B2;font-size:12px">Recent</button>
+<button style="height:24px;padding:0 10px;border:1px solid #2A2F39;border-radius:12px;background:transparent;color:#9AA3B2;font-size:12px">History</button>
+<button style="height:24px;padding:0 10px;border:1px solid #2A2F39;border-radius:12px;background:transparent;color:#9AA3B2;font-size:12px">#relevance</button>
+</div>
+<div style="font-size:11.5px;color:#8B94A3">Searches names, bodies, target index and field names.</div>
+</div>
+<div style="flex-grow:1;overflow:hidden;padding:0 8px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{folders}}" as="fo" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;gap:1px">
+<button style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:none;background:transparent;color:#C9CFD9;font-weight:600;font-size:12px">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="{{fo.chev}}"></path></svg>
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+<span>{{fo.name}}</span><span style="margin-left:auto;color:#8B94A3;font-weight:500">{{fo.count}}</span>
+</button>
+<sc-for list="{{fo.items}}" as="q" hint-placeholder-count="3">
+<button style="{{q.rowStyle}}">
+<span class="mono" style="{{q.methodStyle}}">{{q.method}}</span>
+<span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex-grow:1;text-align:left">
+<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{q.name}}</span>
+<span class="mono" style="font-size:11px;color:#8B94A3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{q.meta}}</span>
+</span>
+</button>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</aside>
+
+<main style="flex-grow:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+<div style="height:40px;flex-shrink:0;display:flex;align-items:flex-end;gap:2px;padding:0 12px;background:#0E1014;border-bottom:1px solid #262A33">
+<button style="height:34px;padding:0 14px;border:1px solid #262A33;border-bottom:none;border-radius:8px 8px 0 0;background:#121419;display:flex;align-items:center;gap:8px"><span>Listings relevance</span><span style="width:6px;height:6px;border-radius:3px;background:#F2B544"></span></button>
+<button style="height:34px;padding:0 14px;border:none;background:transparent;color:#9AA3B2">Cluster ops</button>
+<button style="height:34px;padding:0 14px;border:none;background:transparent;color:#9AA3B2">Scratch</button>
+<button aria-label="New tab" style="height:34px;width:34px;border:none;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+
+<div style="height:48px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #262A33">
+<span style="color:#8B94A3;font-size:12px">Default target</span>
+<button class="mono" style="height:30px;padding:0 10px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;font-size:12px;display:flex;align-items:center;gap:6px"><span style="color:#9CC4FF">listings</span><span style="color:#8B94A3">→ listings-v7</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+<div style="flex-grow:1"></div>
+<button style="height:30px;padding:0 12px;border:none;background:transparent;color:#9AA3B2">Collapse all</button>
+<button style="height:30px;padding:0 12px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027">Format</button>
+<button style="height:30px;padding:0 12px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027">Add to routine</button>
+<button style="height:30px;padding:0 14px;border:none;border-radius:7px;background:#F2B544;color:#1A1405;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Run<span class="mono" style="font-size:11px;opacity:0.75">⌘↵</span></button>
+</div>
+
+<div style="flex-grow:1;min-height:0;display:flex">
+<div style="flex-grow:1;min-width:0;padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;position:relative">
+
+<div style="border:1px solid #262A33;border-radius:9px;background:#16191F">
+<button style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border:none;background:transparent;text-align:left">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B94A3" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg>
+<span class="mono" style="font-size:11px;color:#F2B544;width:38px">POST</span>
+<span style="font-weight:500">Top cities by listings</span>
+<span class="mono" style="font-size:11.5px;color:#8B94A3">listings/_search</span>
+<span style="margin-left:auto;font-size:11.5px;color:#8B94A3">14 lines · 200 · yesterday</span>
+</button>
+</div>
+
+<div style="border:1px solid #F2B544;border-radius:9px;background:#16191F;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #262A33">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B94A3" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
+<span class="mono" style="font-size:11px;color:#F2B544;width:38px">POST</span>
+<span style="font-weight:500">Boost by freshness in a city</span>
+<span style="font-size:11px;padding:2px 7px;border-radius:5px;background:#232832;color:#9AA3B2">#relevance</span>
+<span style="margin-left:auto;display:flex;gap:4px">
+<button aria-label="Run this request" style="width:26px;height:26px;border:none;border-radius:6px;background:#2B2512;color:#F2B544;display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg></button>
+<button aria-label="Pin" style="width:26px;height:26px;border:none;border-radius:6px;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>
+</span>
+</div>
+<div class="mono" style="padding:10px 0;font-size:12.5px;line-height:21px;white-space:pre;position:relative">
+<div><span class="ln">1</span><span style="color:#F2B544">POST</span> <span style="color:#9CC4FF">listings</span>/_search</div>
+<div><span class="ln">2</span>{</div>
+<div><span class="ln">3</span>  <span class="tk">"size"</span>: <span class="tn">20</span>,</div>
+<div><span class="ln">4</span>  <span class="tk">"query"</span>: {</div>
+<div><span class="ln">5</span>    <span class="tk">"function_score"</span>: {</div>
+<div><span class="ln">6</span>      <span class="tk">"query"</span>: {</div>
+<div><span class="ln">7</span>        <span class="tk">"bool"</span>: {</div>
+<div><span class="ln">8</span>          <span class="tk">"filter"</span>: [</div>
+<div><span class="ln">9</span>            { <span class="tk">"term"</span>: { <span class="tk">"status"</span>: <span class="ts">"active"</span> } },</div>
+<div style="background:#1C2029"><span class="ln" style="color:#C9CFD9">10</span>            { <span class="tk">"term"</span>: { <span class="tk">"ci</span><span style="display:inline-block;width:2px;height:16px;background:#F2B544;vertical-align:middle"></span></div>
+<div><span class="ln">11</span>          ]</div>
+<div><span class="ln">12</span>        }</div>
+<div><span class="ln">13</span>      },</div>
+<div><span class="ln">14</span>      <span class="tk">"functions"</span>: [</div>
+<div><span class="ln">15</span>        { <span class="tk">"gauss"</span>: { <span class="tk">"created_at"</span>: { <span class="tk">"scale"</span>: <span class="ts">"7d"</span> } } }</div>
+<div><span class="ln">16</span>      ]</div>
+<div><span class="ln">17</span>    }</div>
+<div><span class="ln">18</span>  }</div>
+<div><span class="ln">19</span>}</div>
+
+<div style="position:absolute;left:300px;top:222px;width:340px;border:1px solid #3A3F49;border-radius:9px;background:#1D2027;box-shadow:0 12px 32px rgba(0,0,0,0.45);font-family:'IBM Plex Sans',system-ui,sans-serif;white-space:normal;line-height:1.4;overflow:hidden">
+<div style="padding:7px 12px;font-size:11px;color:#8B94A3;border-bottom:1px solid #2A2F39">Fields from <span class="mono" style="color:#9CC4FF">listings-v7</span> mapping · term-friendly first</div>
+<div style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:#2B2512"><span class="mono" style="font-size:12px;flex-grow:1"><b style="color:#F2B544">ci</b>ty.name</span><span class="mono" style="font-size:11px;color:#E7C58B">keyword</span></div>
+<div style="display:flex;align-items:center;gap:10px;padding:7px 12px"><span class="mono" style="font-size:12px;flex-grow:1"><b style="color:#F2B544">ci</b>ty.id</span><span class="mono" style="font-size:11px;color:#C7A2FF">integer</span></div>
+<div style="display:flex;align-items:center;gap:10px;padding:7px 12px"><span class="mono" style="font-size:12px;flex-grow:1"><b style="color:#F2B544">ci</b>ty</span><span class="mono" style="font-size:11px;color:#8B94A3">object</span></div>
+<div style="display:flex;align-items:center;gap:10px;padding:7px 12px;color:#8B94A3"><span class="mono" style="font-size:12px;flex-grow:1">des<b style="color:#F2B544">c</b>r<b style="color:#F2B544">i</b>ption</span><span class="mono" style="font-size:11px;color:#9CC4FF">text · not for term</span></div>
+<div style="padding:6px 12px;font-size:11px;color:#8B94A3;border-top:1px solid #2A2F39">↵ insert · ⇥ insert with value template · esc</div>
+</div>
+</div>
+</div>
+
+<div style="border:1px solid #262A33;border-radius:9px;background:#16191F">
+<button style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border:none;background:transparent;text-align:left">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B94A3" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg>
+<span class="mono" style="font-size:11px;color:#5CCB8A;width:38px">GET</span>
+<span style="font-weight:500">Count per city (sanity)</span>
+<span class="mono" style="font-size:11.5px;color:#8B94A3">listings/_count</span>
+<span style="margin-left:auto;font-size:11.5px;color:#8B94A3">9 lines · never run</span>
+</button>
+</div>
+<button style="align-self:flex-start;border:1px dashed #3A3F49;border-radius:8px;background:transparent;color:#9AA3B2;padding:7px 12px;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add request block</button>
+</div>
+
+<section style="width:420px;flex-shrink:0;border-left:1px solid #262A33;background:#0F1115;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #262A33">
+<span style="font-weight:600">Response</span>
+<span class="mono" style="font-size:11.5px;padding:2px 7px;border-radius:5px;background:#15261D;color:#5CCB8A">200 OK</span>
+<span class="mono" style="font-size:11.5px;color:#8B94A3">38 ms · 4.2 KB</span>
+<div style="flex-grow:1"></div>
+<div role="group" aria-label="Response view" style="display:flex;padding:2px;border-radius:7px;background:#16191F;border:1px solid #262A33">
+<button style="height:24px;padding:0 10px;border:none;border-radius:5px;background:#2A2F39;font-size:12px">JSON</button>
+<button style="height:24px;padding:0 10px;border:none;border-radius:5px;background:transparent;color:#9AA3B2;font-size:12px">Table</button>
+</div>
+</div>
+<div class="mono" style="flex-grow:1;padding:12px 14px;font-size:12px;line-height:20px;white-space:pre;overflow:hidden">{
+  <span class="tk">"took"</span>: <span class="tn">31</span>,
+  <span class="tk">"hits"</span>: {
+    <span class="tk">"total"</span>: { <span class="tk">"value"</span>: <span class="tn">48213</span> },
+    <span class="tk">"hits"</span>: [
+      {
+        <span class="tk">"_id"</span>: <span class="ts">"a81f-22c9"</span>,
+        <span class="tk">"_score"</span>: <span class="tn">0.982</span>,
+        <span class="tk">"_source"</span>: {
+          <span class="tk">"title"</span>: <span class="ts">"[Listing title]"</span>,
+          <span class="tk">"city"</span>: { <span class="tk">"name"</span>: <span class="ts">"[City]"</span> },
+          <span class="tk">"price"</span>: <span class="tn">1850000</span>,
+          <span class="tk">"created_at"</span>: <span class="ts">"2026-09-29T08:14Z"</span>
+        }
+      },
+      <span class="tp">▸ 19 more hits</span>
+    ]
+  }
+}</div>
+<div style="padding:10px 14px;border-top:1px solid #262A33;display:flex;gap:14px;font-size:12px;color:#9AA3B2">
+<button style="border:none;background:transparent;padding:0">Copy</button>
+<button style="border:none;background:transparent;padding:0">Copy as cURL</button>
+<button style="border:none;background:transparent;padding:0">Export CSV</button>
+<button style="border:none;background:transparent;padding:0;margin-left:auto">History (12)</button>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const mc = { GET: '#5CCB8A', POST: '#F2B544', PUT: '#6AA8FF', DELETE: '#FF7A70' };
+const q = (method, name, meta, active) => ({
+method, name, meta,
+rowStyle: 'display:flex;align-items:center;gap:10px;width:100%;padding:6px 8px 6px 28px;border:none;border-radius:6px;background:' + (active ? '#232832' : 'transparent') + ';color:#E6E8EC',
+methodStyle: 'font-size:10.5px;width:36px;flex-shrink:0;color:' + mc[method]
+});
+const open = 'M6 9l6 6 6-6', closed = 'M9 6l6 6-6 6';
+return {
+folders: [
+{ name: 'Pinned', count: 2, chev: open, items: [q('GET', 'Unassigned shards — why', '_cluster/allocation/explain'), q('GET', 'Biggest indices', '_cat/indices?s=store.size:desc')] },
+{ name: 'Listings relevance', count: 3, chev: open, items: [q('POST', 'Boost by freshness in a city', 'listings · edited 2h ago', true), q('POST', 'Top cities by listings', 'listings · yesterday'), q('GET', 'Count per city (sanity)', 'listings · never run')] },
+{ name: 'Search logs', count: 1, chev: open, items: [q('POST', 'Zero-result queries by city', 'search-logs-* · 3d ago')] },
+{ name: 'Cluster ops', count: 6, chev: closed, items: [] },
+{ name: 'Scratch', count: 23, chev: closed, items: [] }
+]
+};
+}
+}
+</script>
+</body>
+</html>

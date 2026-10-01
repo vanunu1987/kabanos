@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cluster explorer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit}
+a{color:#F2B544}a:hover{color:#FFD27A}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
+.ab{width:44px;height:44px;border:none;border-radius:10px;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center}
+.ab.on{background:#232832;color:#F2B544}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;background:#121419;color:#E6E8EC;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="height:46px;flex-shrink:0;display:flex;align-items:center;gap:20px;padding:0 14px;background:#0E1014;border-bottom:1px solid #262A33">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:12px;height:12px;border-radius:6px;background:#FF5F57"></span><span style="width:12px;height:12px;border-radius:6px;background:#FEBC2E"></span><span style="width:12px;height:12px;border-radius:6px;background:#28C840"></span></div>
+<div style="display:flex;align-items:center;gap:4px;margin-left:8px">
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:#20242C;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#F2B544"></span><span style="font-weight:500">Search · Production</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#2B2512;color:#F2B544">ES 8.15</span></button>
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#9AA3B2;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#4DC4D6"></span><span>Logs · OpenSearch</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#10272B;color:#4DC4D6">OS 2.17</span></button>
+<button aria-label="New connection" style="width:30px;height:30px;border:none;border-radius:7px;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+<div style="flex-grow:1"></div>
+<button style="width:320px;height:30px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#8B94A3;display:flex;align-items:center;gap:8px;padding:0 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex-grow:1;text-align:left">Jump to index, query, routine…</span><span class="mono" style="font-size:11px">⌘K</span></button>
+</div>
+
+<div style="flex-grow:1;display:flex;min-height:0">
+<nav aria-label="Main" style="width:64px;flex-shrink:0;background:#0E1014;border-right:1px solid #262A33;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0">
+<button class="ab" aria-label="Connections"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0zM12 16v5"></path></svg></button>
+<button class="ab on" aria-label="Explorer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path></svg></button>
+<button class="ab" aria-label="Query workspace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg></button>
+<button class="ab" aria-label="Routines"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"></path><path d="M16 15l5 3-5 3z"></path></svg></button>
+<button class="ab" aria-label="Stack management"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></button>
+<div style="flex-grow:1"></div>
+<button class="ab" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+</nav>
+
+<aside style="width:300px;flex-shrink:0;background:#16191F;border-right:1px solid #262A33;display:flex;flex-direction:column">
+<div style="padding:14px 16px 10px;display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#5CCB8A"></span><span style="font-weight:600;font-size:14px">search-prod</span></div>
+<div style="color:#8B94A3;font-size:12px">Elasticsearch 8.15.2 · green · 9 nodes</div>
+</div>
+<div style="padding:0 16px 10px;display:flex;flex-direction:column;gap:8px">
+<label style="display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid #2A2F39;border-radius:8px;background:#121419;color:#8B94A3">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input aria-label="Filter indices, aliases and templates" placeholder="Filter indices, aliases, templates" style="flex-grow:1;border:none;outline:none;background:transparent;color:#E6E8EC">
+</label>
+<div style="display:flex;gap:6px">
+<button style="height:26px;padding:0 10px;border:1px solid #3A3F49;border-radius:13px;background:#232832;font-size:12px">Hide system</button>
+<button style="height:26px;padding:0 10px;border:1px solid #2A2F39;border-radius:13px;background:transparent;color:#9AA3B2;font-size:12px">Hide closed</button>
+<button style="height:26px;padding:0 10px;border:1px solid #2A2F39;border-radius:13px;background:transparent;color:#9AA3B2;font-size:12px">Sort: size</button>
+</div>
+</div>
+<div style="flex-grow:1;overflow:hidden;padding:0 8px 8px;display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{tree}}" as="sec" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:1px">
+<button style="display:flex;align-items:center;gap:6px;padding:6px 8px;border:none;background:transparent;color:#C9CFD9;font-weight:600;font-size:12px">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
+<span>{{sec.name}}</span><span style="margin-left:auto;color:#8B94A3;font-weight:500">{{sec.count}}</span>
+</button>
+<sc-for list="{{sec.items}}" as="it" hint-placeholder-count="4">
+<button style="{{it.rowStyle}}">
+<span style="{{it.dotStyle}}"></span>
+<span class="mono" style="flex-grow:1;min-width:0;text-align:left;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{it.name}}</span>
+<span class="mono" style="font-size:11px;color:#8B94A3;flex-shrink:0">{{it.meta}}</span>
+</button>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</aside>
+
+<main style="flex-grow:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:18px 28px 0;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #262A33">
+<div style="color:#8B94A3;font-size:12px">Indices / <span style="color:#C9CFD9">listings-v7</span></div>
+<div style="display:flex;align-items:center;gap:12px">
+<h1 class="mono" style="margin:0;font-size:22px;font-weight:500">listings-v7</h1>
+<span style="font-size:11.5px;padding:3px 8px;border-radius:6px;background:#15261D;color:#5CCB8A">green</span>
+<span class="mono" style="font-size:11.5px;padding:3px 8px;border-radius:6px;background:#1E2230;color:#9CC4FF">alias: listings</span>
+<span class="mono" style="font-size:11.5px;padding:3px 8px;border-radius:6px;background:#1E2230;color:#9CC4FF">alias: listings-read</span>
+<div style="flex-grow:1"></div>
+<button style="height:34px;padding:0 14px;border:1px solid #2A2F39;border-radius:8px;background:#1D2027">Open in workspace</button>
+<button style="height:34px;padding:0 14px;border:none;border-radius:8px;background:#F2B544;color:#1A1405;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Query this index</button>
+<button aria-label="More actions" style="width:34px;height:34px;border:1px solid #2A2F39;border-radius:8px;background:#1D2027;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+</div>
+<div role="tablist" style="display:flex;gap:22px">
+<button role="tab" style="border:none;background:transparent;padding:8px 0 10px;border-bottom:2px solid #F2B544;font-weight:500">Overview</button>
+<button role="tab" style="border:none;background:transparent;padding:8px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Mapping</button>
+<button role="tab" style="border:none;background:transparent;padding:8px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Settings</button>
+<button role="tab" style="border:none;background:transparent;padding:8px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Documents</button>
+<button role="tab" style="border:none;background:transparent;padding:8px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Shards</button>
+<button role="tab" style="border:none;background:transparent;padding:8px 0 10px;color:#9AA3B2;border-bottom:2px solid transparent">Saved queries · 6</button>
+</div>
+</div>
+
+<div style="flex-grow:1;padding:22px 28px;display:flex;flex-direction:column;gap:20px;overflow:hidden">
+<div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:12px">
+<div style="padding:14px 16px;border-radius:10px;background:#191C22;border:1px solid #262A33;display:flex;flex-direction:column;gap:6px"><span style="color:#8B94A3;font-size:12px">Documents</span><span class="mono" style="font-size:22px">12,418,203</span></div>
+<div style="padding:14px 16px;border-radius:10px;background:#191C22;border:1px solid #262A33;display:flex;flex-direction:column;gap:6px"><span style="color:#8B94A3;font-size:12px">Store size</span><span class="mono" style="font-size:22px">38.2 GB</span></div>
+<div style="padding:14px 16px;border-radius:10px;background:#191C22;border:1px solid #262A33;display:flex;flex-direction:column;gap:6px"><span style="color:#8B94A3;font-size:12px">Shards</span><span class="mono" style="font-size:22px">6p · 1r</span></div>
+<div style="padding:14px 16px;border-radius:10px;background:#191C22;border:1px solid #262A33;display:flex;flex-direction:column;gap:6px"><span style="color:#8B94A3;font-size:12px">Created</span><span class="mono" style="font-size:22px">2026-08-11</span></div>
+</div>
+
+<div style="flex-grow:1;min-height:0;display:flex;gap:16px">
+<section style="flex-grow:1;min-width:0;border-radius:10px;background:#16191F;border:1px solid #262A33;display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #262A33">
+<h2 style="margin:0;font-size:14px;font-weight:600">Mapping</h2>
+<span style="color:#8B94A3;font-size:12px">214 fields</span>
+<div style="flex-grow:1"></div>
+<label style="display:flex;align-items:center;gap:8px;height:30px;width:240px;padding:0 10px;border:1px solid #2A2F39;border-radius:7px;background:#121419;color:#8B94A3">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input aria-label="Filter fields" placeholder="Filter fields" style="flex-grow:1;border:none;outline:none;background:transparent;color:#E6E8EC;font-size:12px">
+</label>
+<button style="height:30px;padding:0 10px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;font-size:12px">Raw JSON</button>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr);padding:8px 16px;color:#8B94A3;font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid #20242C"><span>Field</span><span>Type</span><span>Details</span></div>
+<sc-for list="{{fields}}" as="f" hint-placeholder-count="10">
+<div style="display:grid;grid-template-columns:minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr);padding:7px 16px;border-bottom:1px solid #1D2027;align-items:center">
+<span class="mono" style="{{f.nameStyle}}">{{f.name}}</span>
+<span class="mono" style="{{f.typeStyle}}">{{f.type}}</span>
+<span style="color:#8B94A3;font-size:12px">{{f.details}}</span>
+</div>
+</sc-for>
+</section>
+
+<div style="width:340px;flex-shrink:0;display:flex;flex-direction:column;gap:16px">
+<section style="border-radius:10px;background:#16191F;border:1px solid #262A33;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font-size:14px;font-weight:600">Aliases</h2>
+<div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-size:12px;color:#9CC4FF">listings</span><span style="font-size:11px;padding:2px 6px;border-radius:5px;background:#2B2512;color:#F2B544">write index</span></div>
+<div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-size:12px;color:#9CC4FF">listings-read</span><span style="font-size:11px;color:#8B94A3">filter: status = active</span></div>
+<button style="align-self:flex-start;border:none;background:transparent;padding:2px 0;color:#F2B544">Edit aliases…</button>
+</section>
+<section style="border-radius:10px;background:#16191F;border:1px solid #262A33;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+<h2 style="margin:0;font-size:14px;font-weight:600">Matched index template</h2>
+<div style="display:flex;align-items:center;justify-content:space-between"><span class="mono" style="font-size:12px">listings-template</span><span style="font-size:11px;color:#8B94A3">priority 200</span></div>
+<div class="mono" style="font-size:11.5px;color:#8B94A3">index_patterns: ["listings-*"]</div>
+<div class="mono" style="font-size:11.5px;color:#8B94A3">composed_of: base-settings, hebrew-analysis</div>
+</section>
+<section style="border-radius:10px;background:#16191F;border:1px solid #262A33;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+<h2 style="margin:0;font-size:14px;font-weight:600">Key settings</h2>
+<div style="display:flex;justify-content:space-between"><span class="mono" style="font-size:12px;color:#9AA3B2">refresh_interval</span><span class="mono" style="font-size:12px">1s</span></div>
+<div style="display:flex;justify-content:space-between"><span class="mono" style="font-size:12px;color:#9AA3B2">number_of_replicas</span><span class="mono" style="font-size:12px">1</span></div>
+<div style="display:flex;justify-content:space-between"><span class="mono" style="font-size:12px;color:#9AA3B2">max_result_window</span><span class="mono" style="font-size:12px">10000</span></div>
+<div style="display:flex;justify-content:space-between"><span class="mono" style="font-size:12px;color:#9AA3B2">lifecycle.name</span><span class="mono" style="font-size:12px">—</span></div>
+</section>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const health = { g: '#5CCB8A', y: '#F2C94C', r: '#FF7A70', a: '#9CC4FF', t: '#C7A2FF' };
+const row = (name, meta, h, active) => ({
+name, meta,
+rowStyle: 'display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px 5px 26px;border:none;border-radius:6px;background:' + (active ? '#232832' : 'transparent') + ';color:' + (active ? '#E6E8EC' : '#C9CFD9'),
+dotStyle: 'width:7px;height:7px;border-radius:' + (h === 'a' || h === 't' ? '2px' : '4px') + ';flex-shrink:0;background:' + health[h]
+});
+const types = { keyword: '#E7C58B', text: '#9CC4FF', long: '#C7A2FF', integer: '#C7A2FF', date: '#5CCB8A', geo_point: '#4DC4D6', object: '#8B94A3', boolean: '#FF9E7A', scaled_float: '#C7A2FF', nested: '#8B94A3' };
+const f = (name, type, details, depth) => ({
+name, type, details,
+nameStyle: 'font-size:12px;padding-left:' + ((depth || 0) * 18) + 'px;color:' + (depth ? '#C9CFD9' : '#E6E8EC'),
+typeStyle: 'font-size:12px;color:' + types[type]
+});
+return {
+tree: [
+{ name: 'Indices', count: 128, items: [row('listings-v7', '38.2gb', 'g', true), row('listings-v6', '35.9gb', 'g'), row('users-2026.09', '4.1gb', 'g'), row('search-logs-2026.09.30', '2.7gb', 'y'), row('search-logs-2026.09.29', '6.3gb', 'g'), row('geo-areas', '120mb', 'g'), row('+ 122 more', '', 'g')] },
+{ name: 'Aliases', count: 14, items: [row('listings → listings-v7', '', 'a'), row('listings-read → listings-v7', '', 'a'), row('users → users-2026.09', '', 'a'), row('search-logs → 30 indices', '', 'a')] },
+{ name: 'Index templates', count: 9, items: [row('listings-template', 'p200', 't'), row('search-logs-template', 'p100', 't'), row('users-template', 'p100', 't'), row('Component: base-settings', '', 't')] }
+],
+fields: [
+f('id', 'keyword', 'doc_values'),
+f('title', 'text', 'analyzer: hebrew · + title.raw (keyword)'),
+f('description', 'text', 'analyzer: hebrew'),
+f('price', 'long', ''),
+f('price_currency', 'keyword', ''),
+f('status', 'keyword', 'active · sold · expired'),
+f('location', 'geo_point', ''),
+f('city', 'object', '2 properties'),
+f('name', 'keyword', 'city.name', 1),
+f('id', 'integer', 'city.id', 1),
+f('created_at', 'date', 'format: strict_date_optional_time'),
+f('is_promoted', 'boolean', ''),
+f('tags', 'keyword', 'multi-value')
+]
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+/* Design tokens — SPEC §10, taken from design/*.dc.html */
+:root {
+  --bg: #121419;
+  --chrome: #0e1014;
+  --surface: #16191f;
+  --surface-2: #191c22;
+  --surface-3: #1d2027;
+  --tab-active: #20242c;
+  --selected: #232832;
+  --border: #262a33;
+  --border-strong: #2a2f39;
+  --border-stronger: #3a3f49;
+
+  --text: #e6e8ec;
+  --text-2: #c9cfd9;
+  --muted: #9aa3b2;
+  --faint: #8b94a3;
+  --line-no: #4e5563;
+
+  --accent: #f2b544;
+  --accent-bg: #2b2512;
+  --accent-hover: #ffd27a;
+  --on-accent: #1a1405;
+  --os: #4dc4d6;
+  --os-bg: #10272b;
+
+  --get: #5ccb8a;
+  --post: #f2b544;
+  --put: #6aa8ff;
+  --head: #b6a2ff;
+  --delete: #ff7a70;
+
+  --green: #5ccb8a;
+  --yellow: #f2c94c;
+  --red: #ff7a70;
+  --ok-bg: #15261d;
+  --ok-border: #24503a;
+  --ok-text: #a9c9b6;
+  --err-bg: #2a1716;
+  --err-border: #5a2a27;
+  --err-text: #e5b3ae;
+
+  --json-key: #9cc4ff;
+  --json-string: #e7c58b;
+  --json-number: #c7a2ff;
+  --json-punct: #7c8595;
+
+  --font-ui: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --radius-sm: 7px;
+  --radius: 8px;
+  --radius-lg: 10px;
+}

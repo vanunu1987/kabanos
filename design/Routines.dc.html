@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Routines</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit}
+a{color:#F2B544}a:hover{color:#FFD27A}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
+.ab{width:44px;height:44px;border:none;border-radius:10px;background:transparent;color:#8B94A3;display:flex;align-items:center;justify-content:center}
+.ab.on{background:#232832;color:#F2B544}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;background:#121419;color:#E6E8EC;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="height:46px;flex-shrink:0;display:flex;align-items:center;gap:20px;padding:0 14px;background:#0E1014;border-bottom:1px solid #262A33">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:12px;height:12px;border-radius:6px;background:#FF5F57"></span><span style="width:12px;height:12px;border-radius:6px;background:#FEBC2E"></span><span style="width:12px;height:12px;border-radius:6px;background:#28C840"></span></div>
+<div style="display:flex;align-items:center;gap:4px;margin-left:8px">
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:#20242C;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#F2B544"></span><span style="font-weight:500">Search · Production</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#2B2512;color:#F2B544">ES 8.15</span></button>
+<button style="height:30px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#9AA3B2;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#4DC4D6"></span><span>Logs · OpenSearch</span><span class="mono" style="font-size:10.5px;padding:1px 5px;border-radius:4px;background:#10272B;color:#4DC4D6">OS 2.17</span></button>
+</div>
+<div style="flex-grow:1"></div>
+<button style="width:320px;height:30px;border:1px solid #2A2F39;border-radius:8px;background:#16191F;color:#8B94A3;display:flex;align-items:center;gap:8px;padding:0 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex-grow:1;text-align:left">Jump to index, query, routine…</span><span class="mono" style="font-size:11px">⌘K</span></button>
+</div>
+
+<div style="flex-grow:1;display:flex;min-height:0">
+<nav aria-label="Main" style="width:64px;flex-shrink:0;background:#0E1014;border-right:1px solid #262A33;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0">
+<button class="ab" aria-label="Connections"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 0 1-10 0zM12 16v5"></path></svg></button>
+<button class="ab" aria-label="Explorer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path></svg></button>
+<button class="ab" aria-label="Query workspace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"></path></svg></button>
+<button class="ab on" aria-label="Routines"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"></path><path d="M16 15l5 3-5 3z"></path></svg></button>
+<button class="ab" aria-label="Stack management"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></button>
+<div style="flex-grow:1"></div>
+<button class="ab" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+</nav>
+
+<aside style="width:280px;flex-shrink:0;background:#16191F;border-right:1px solid #262A33;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px">
+<div style="font-size:14px;font-weight:600">Routines</div>
+<button style="height:28px;padding:0 10px;border:1px solid #2A2F39;border-radius:7px;background:#1D2027;font-size:12px;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>New</button>
+</div>
+<div style="padding:0 16px 10px">
+<label style="display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border:1px solid #2A2F39;border-radius:8px;background:#121419;color:#8B94A3">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input aria-label="Search routines" placeholder="Search routines" style="flex-grow:1;border:none;outline:none;background:transparent;color:#E6E8EC;font-size:12px">
+</label>
+</div>
+<div style="padding:0 8px;display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{routines}}" as="r" hint-placeholder-count="5">
+<button style="{{r.rowStyle}}">
+<span style="display:flex;align-items:center;gap:8px"><span style="font-weight:500;flex-grow:1;text-align:left">{{r.name}}</span><span style="{{r.badgeStyle}}">{{r.last}}</span></span>
+<span style="font-size:11.5px;color:#8B94A3;text-align:left">{{r.meta}}</span>
+</button>
+</sc-for>
+</div>
+</aside>
+
+<main style="flex-grow:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:18px 24px 14px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #262A33">
+<div style="display:flex;align-items:center;gap:12px">
+<h1 style="margin:0;font-size:20px;font-weight:600">Reindex listings &amp; swap alias</h1>
+<span style="font-size:11.5px;padding:3px 8px;border-radius:6px;background:#1E2230;color:#9CC4FF">Running · step 4 of 6</span>
+<div style="flex-grow:1"></div>
+<label style="display:flex;align-items:center;gap:8px;color:#C9CFD9"><input type="checkbox" style="width:16px;height:16px;accent-color:#F2B544">Dry run (GET-only)</label>
+<button style="height:34px;padding:0 14px;border:1px solid #2A2F39;border-radius:8px;background:#1D2027">Step through</button>
+<button style="height:34px;padding:0 14px;border:1px solid #5A2A28;border-radius:8px;background:#2A1716;color:#FF9A92">Stop</button>
+<button style="height:34px;padding:0 16px;border:none;border-radius:8px;background:#F2B544;color:#1A1405;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Run all</button>
+</div>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+<span style="color:#8B94A3;font-size:12px">Runs on</span>
+<span style="display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid #2A2F39;border-radius:7px;background:#16191F"><span style="width:7px;height:7px;border-radius:4px;background:#F2B544"></span>Search · Production</span>
+<span style="color:#8B94A3;font-size:12px;margin-left:10px">Variables</span>
+<span class="mono" style="height:28px;display:flex;align-items:center;padding:0 10px;border-radius:7px;background:#16191F;border:1px solid #2A2F39;font-size:12px"><span style="color:#C7A2FF">source</span>&#160;=&#160;<span style="color:#E7C58B">listings-v7</span></span>
+<span class="mono" style="height:28px;display:flex;align-items:center;padding:0 10px;border-radius:7px;background:#16191F;border:1px solid #2A2F39;font-size:12px"><span style="color:#C7A2FF">target</span>&#160;=&#160;<span style="color:#E7C58B">listings-v8</span></span>
+<span class="mono" style="height:28px;display:flex;align-items:center;padding:0 10px;border-radius:7px;background:#16191F;border:1px solid #2A2F39;font-size:12px"><span style="color:#C7A2FF">alias</span>&#160;=&#160;<span style="color:#E7C58B">listings</span></span>
+<button style="height:28px;padding:0 10px;border:1px dashed #3A3F49;border-radius:7px;background:transparent;color:#9AA3B2;font-size:12px">+ variable</button>
+</div>
+</div>
+
+<div style="flex-grow:1;min-height:0;display:flex">
+<div style="flex-grow:1;min-width:0;padding:18px 24px;display:flex;flex-direction:column;overflow:hidden">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="6">
+<div style="display:flex;gap:14px">
+<div style="width:28px;flex-shrink:0;display:flex;flex-direction:column;align-items:center">
+<span class="mono" style="{{s.numStyle}}">{{s.n}}</span>
+<span style="{{s.lineStyle}}"></span>
+</div>
+<div style="{{s.cardStyle}}">
+<div style="display:flex;align-items:center;gap:10px">
+<span class="mono" style="{{s.methodStyle}}">{{s.method}}</span>
+<span class="mono" style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{s.path}}</span>
+<span style="margin-left:auto;flex-shrink:0;{{s.statusStyle}}">{{s.status}}</span>
+</div>
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+<span style="font-weight:500">{{s.name}}</span>
+<sc-for list="{{s.chips}}" as="c" hint-placeholder-count="2">
+<span class="mono" style="font-size:11px;padding:2px 7px;border-radius:5px;background:#232832;color:#C9CFD9">{{c}}</span>
+</sc-for>
+</div>
+<sc-if value="{{s.progress}}" hint-placeholder-val="{{false}}">
+<div style="height:6px;border-radius:3px;background:#262A33;overflow:hidden"><div style="width:64%;height:6px;background:#6AA8FF"></div></div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+<button style="margin-left:42px;align-self:flex-start;border:1px dashed #3A3F49;border-radius:8px;background:transparent;color:#9AA3B2;padding:7px 12px">+ Add step — from library or new request</button>
+</div>
+
+<section style="width:380px;flex-shrink:0;border-left:1px solid #262A33;background:#0F1115;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #262A33"><span style="font-weight:600">Run log</span><span style="font-size:12px;color:#8B94A3">started 22:31:04</span><button style="margin-left:auto;border:none;background:transparent;color:#9AA3B2;font-size:12px;padding:0">Previous runs</button></div>
+<div class="mono" style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;font-size:11.5px;line-height:1.5">
+<sc-for list="{{log}}" as="l" hint-placeholder-count="6">
+<div style="display:flex;gap:10px"><span style="color:#7C8595;flex-shrink:0">{{l.t}}</span><span style="{{l.style}}">{{l.msg}}</span></div>
+</sc-for>
+</div>
+<div style="margin-top:auto;padding:12px 14px;border-top:1px solid #262A33;display:flex;flex-direction:column;gap:6px">
+<div style="font-size:12px;font-weight:600">Captured values</div>
+<div class="mono" style="font-size:11.5px;color:#C9CFD9">steps.count.value = <span style="color:#C7A2FF">12418203</span></div>
+<div class="mono" style="font-size:11.5px;color:#C9CFD9">steps.reindex.task = <span style="color:#E7C58B">"oTUltX4I:12345"</span></div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const mc = { GET: '#5CCB8A', POST: '#F2B544', PUT: '#6AA8FF', DELETE: '#FF7A70' };
+const st = {
+done: { c: '#5CCB8A', bg: '#15261D', border: '#262A33' },
+run: { c: '#9CC4FF', bg: '#1E2230', border: '#6AA8FF' },
+wait: { c: '#8B94A3', bg: '#1D2027', border: '#262A33' },
+gate: { c: '#F2B544', bg: '#2B2512', border: '#262A33' }
+};
+const step = (n, method, path, name, chips, state, status, last, progress) => {
+const s = st[state];
+return {
+n, method, path, name, chips, status, progress: !!progress,
+numStyle: 'width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;background:' + s.bg + ';color:' + s.c + ';border:1px solid ' + (state === 'run' ? '#6AA8FF' : 'transparent'),
+lineStyle: 'width:2px;flex-grow:1;min-height:10px;background:' + (last ? 'transparent' : (state === 'done' ? '#2F5A43' : '#2A2F39')),
+cardStyle: 'flex-grow:1;min-width:0;margin-bottom:10px;padding:10px 14px;border-radius:9px;background:#16191F;display:flex;flex-direction:column;gap:6px;border:1px solid ' + s.border,
+methodStyle: 'font-size:11px;width:40px;flex-shrink:0;color:' + mc[method],
+statusStyle: 'font-size:12px;color:' + s.c
+};
+};
+const lg = (t, msg, k) => ({ t, msg, style: 'color:' + ({ ok: '#8FD9AE', info: '#C9CFD9', run: '#9CC4FF', warn: '#F2B544' }[k]) });
+return {
+routines: [
+{ name: 'Reindex listings & swap alias', meta: '6 steps · Search · Production', last: 'running', active: true },
+{ name: 'Morning cluster check', meta: '4 steps · all connections', last: 'ok' },
+{ name: 'Drop search-logs older than 30d', meta: '3 steps · Logs · OpenSearch', last: 'ok' },
+{ name: 'Rebuild users index', meta: '5 steps · Users · Production', last: 'failed' },
+{ name: 'Warm up relevance queries', meta: '8 steps · Search · Staging', last: 'never' }
+].map((r) => ({ ...r,
+rowStyle: 'display:flex;flex-direction:column;gap:3px;width:100%;padding:9px 10px;border:none;border-radius:8px;background:' + (r.active ? '#232832' : 'transparent') + ';color:#E6E8EC',
+badgeStyle: 'font-size:11px;padding:1px 6px;border-radius:5px;' + ({ running: 'background:#1E2230;color:#9CC4FF', ok: 'background:#15261D;color:#5CCB8A', failed: 'background:#2A1716;color:#FF9A92', never: 'background:#1D2027;color:#8B94A3' }[r.last])
+})),
+steps: [
+step(1, 'GET', '_cluster/health', 'Cluster is healthy', ['assert status != red', 'on fail: stop'], 'done', '200 · 21 ms'),
+step(2, 'POST', '{{source}}/_count', 'Count source docs', ['save → steps.count'], 'done', '200 · 12,418,203'),
+step(3, 'POST', '_reindex?wait_for_completion=false', 'Start reindex', ['body: saved query “Reindex v7→v8”', 'save → steps.reindex'], 'done', '200 · task created'),
+step(4, 'GET', '_tasks/{{steps.reindex.task}}', 'Wait for task', ['repeat every 10s until completed', 'timeout 45m'], 'run', 'polling · 64%', false, true),
+step(5, 'POST', '{{target}}/_count', 'Verify doc count', ['assert == steps.count.value'], 'wait', 'pending'),
+step(6, 'POST', '_aliases', 'Swap alias to target', ['needs confirmation', 'prod'], 'gate', 'asks before run', true)
+],
+log: [
+lg('22:31:04', 'Routine started · 6 steps', 'info'),
+lg('22:31:04', '✓ 1 GET _cluster/health → green', 'ok'),
+lg('22:31:05', '✓ 2 POST listings-v7/_count → 12418203', 'ok'),
+lg('22:31:05', '✓ 3 POST _reindex → task oTUltX4I:12345', 'ok'),
+lg('22:31:15', '… 4 task 18% (2.2M / 12.4M)', 'run'),
+lg('22:38:52', '… 4 task 64% (7.9M / 12.4M)', 'run'),
+lg('—', '6 will pause for confirmation (prod)', 'warn')
+]
+};
+}
+}
+</script>
+</body>
+</html>

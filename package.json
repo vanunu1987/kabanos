@@ -1,0 +1,80 @@
+{
+  "name": "kabanos",
+  "productName": "kabanos",
+  "version": "0.1.0",
+  "description": "Elasticsearch / OpenSearch desktop client for macOS",
+  "private": true,
+  "main": "./out/main/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run",
+    "test:watch": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs",
+    "postinstall": "electron-builder install-app-deps",
+    "dist": "electron-vite build && electron-builder --mac dmg",
+    "clusters:up": "docker compose up -d",
+    "clusters:down": "docker compose down",
+    "clusters:fingerprint": "docker exec kabanos-es8 openssl x509 -fingerprint -sha256 -noout -in /usr/share/elasticsearch/config/certs/http_ca.crt",
+    "e2e": "electron-vite build && playwright test",
+    "clusters:seed": "node scripts/seed.mjs",
+    "spec:build": "node scripts/build-spec.mjs",
+    "pack": "electron-vite build && electron-builder --mac --arm64 --dir",
+    "smoke": "playwright test --config playwright.smoke.config.ts",
+    "dist:arm64": "electron-vite build && electron-builder --mac dmg --arm64"
+  },
+  "dependencies": {
+    "@aws-crypto/sha256-js": "^5.2.0",
+    "@aws-sdk/credential-providers": "^3.1142.0",
+    "@smithy/protocol-http": "^5.6.2",
+    "@smithy/signature-v4": "^5.7.4",
+    "better-sqlite3": "^13.0.3",
+    "jsonata": "^2.2.2",
+    "ssh2": "^1.17.0",
+    "undici": "^8.11.2",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@fontsource/bricolage-grotesque": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.2.0",
+    "@fontsource/jetbrains-mono": "^5.2.0",
+    "@monaco-editor/react": "^4.7.0",
+    "@playwright/test": "^1.63.0",
+    "@smithy/types": "^4.19.0",
+    "@tanstack/react-query": "^5.104.0",
+    "@tanstack/react-virtual": "^3.14.13",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/ssh2": "^1.15.6",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "monaco-editor": "^0.57.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.6",
+    "vitest": "^4.0.0",
+    "zustand": "^5.0.15"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "electron",
+      "esbuild",
+      "ssh2"
+    ],
+    "ignoredOptionalDependencies": [
+      "cpu-features"
+    ]
+  },
+  "packageManager": "pnpm@9.0.6"
+}

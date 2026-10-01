@@ -1,0 +1,26 @@
+appId: io.kabanos.desktop
+productName: kabanos
+directories:
+  buildResources: build
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: brand
+    to: brand
+    filter: ['*.png']
+asarUnpack:
+  - '**/*.node'
+mac:
+  category: public.app-category.developer-tools
+  # Separate Apple silicon / Intel DMGs (a universal build trips over native-module prebuilds).
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  # Signing + notarization need an Apple Developer ID: set `identity` and `notarize: true`
+  # (with APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID in the environment).
+  identity: null
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+# No update server yet; add a `publish` provider (e.g. S3 / GitHub) to enable electron-updater.
+publish: null
