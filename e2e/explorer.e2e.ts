@@ -18,6 +18,9 @@ test.afterAll(async () => app?.close())
 
 test('explorer shows indices, aliases, data streams and templates', async () => {
   await connect(page, CLUSTERS.es9)
+  // The cluster summary counts what the tree shows (system objects listed separately).
+  await expect(page.locator('.placeholder')).toContainText('5 indices · 1 data stream · 3 aliases · 3 index templates')
+  await expect(page.locator('.placeholder')).toContainText('plus system objects hidden by “Hide system”')
   const tree = page.locator('.explorer-tree')
   await expect(tree.locator('.tree-row[title="listings-v7"]')).toBeVisible()
   await expect(tree.locator('.tree-row[title="listings → listings-v7"]')).toBeVisible()

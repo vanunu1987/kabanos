@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { formatBytes, type ClusterTree, type Health } from '@shared/meta'
+import { formatBytes, isSystemAlias, isSystemDataStream, isSystemIndex, isSystemTemplate, type ClusterTree, type Health } from '@shared/meta'
 import type { ConnectionConfig } from '@shared/types'
 import { Icon } from '../../shell/icons'
 import { useApp, type ExplorerSel, type NodeKind } from '../../store'
@@ -35,7 +35,7 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
     const match = (s: string) => !q || s.toLowerCase().includes(q)
 
     const indices = tree.indices
-      .filter((i) => !(hideSystem && (i.hidden || i.dataStream)) && !(hideClosed && i.status === 'close') && match(i.name))
+      .filter((i) => !(hideSystem && isSystemIndex(i)) && !(hideClosed && i.status === 'close') && match(i.name))
       .sort((a, b) => (sort === 'size' ? b.storeBytes - a.storeBytes : sort === 'docs' ? b.docs - a.docs : a.name.localeCompare(b.name)))
       .map(
         (i): Row => ({
@@ -47,10 +47,10 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
         })
       )
     const streams = tree.dataStreams
-      .filter((d) => !(hideSystem && d.hidden) && match(d.name))
+      .filter((d) => !(hideSystem && isSystemDataStream(d)) && match(d.name))
       .map((d): Row => ({ kind: 'datastream', name: d.name, label: d.name, meta: `${d.indices.length} idx`, color: HEALTH_COLOR[d.health] }))
     const aliases = tree.aliases
-      .filter((a) => !(hideSystem && a.name.startsWith('.')) && (match(a.name) || a.indices.some((i) => match(i.index))))
+      .filter((a) => !(hideSystem && isSystemAlias(a)) && (match(a.name) || a.indices.some((i) => match(i.index))))
       .map(
         (a): Row => ({
           kind: 'alias',
@@ -63,7 +63,7 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
       )
     const tpl = (kind: 'index' | 'component') =>
       tree.templates
-        .filter((t) => t.kind === kind && !(hideSystem && (t.managed || t.name.startsWith('.') || isBuiltinTemplate(t.name))) && match(t.name))
+        .filter((t) => t.kind === kind && !(hideSystem && isSystemTemplate(t)) && match(t.name))
         .map((t): Row => ({ kind: 'template', name: t.name, label: t.name, meta: t.priority !== undefined ? `p${t.priority}` : '', color: 'var(--json-number)', square: true }))
 
     return [
@@ -153,11 +153,6 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
       </div>
     </aside>
   )
-}
-
-/** Templates every cluster ships with (logs, metrics, ILM, …) — hidden with "Hide system". */
-function isBuiltinTemplate(name: string): boolean {
-  return /^(logs|metrics|synthetics|traces|profiling|ecs|apm|elastic-connectors|behavioral_analytics|ilm-history|slm-history|watch-history|monitoring|data-streams|search-acl|security|entities)([-@_.].*)?$/.test(name) || name.includes('@')
 }
 
 export function useConnection(id: string | null): ConnectionConfig | undefined {

@@ -171,3 +171,40 @@ export function formatBytes(n: number | undefined): string {
   }
   return `${v >= 100 || i === 0 ? Math.round(v) : v.toFixed(1)}${units[i]}`
 }
+
+/**
+ * What "Hide system" hides — shared by the Explorer tree and the cluster summary so their counts agree.
+ * System = dot-prefixed or hidden indices, data-stream backing indices, hidden data streams,
+ * dot-prefixed aliases, and the managed/built-in templates every cluster ships with.
+ */
+export const isSystemIndex = (i: IndexSummary): boolean => i.hidden || !!i.dataStream
+export const isSystemDataStream = (d: DataStreamSummary): boolean => d.hidden
+export const isSystemAlias = (a: AliasSummary): boolean => a.name.startsWith('.')
+export const isSystemTemplate = (t: TemplateSummary): boolean => t.managed || t.name.startsWith('.') || isBuiltinTemplateName(t.name)
+
+/** Templates shipped by Elastic (logs, metrics, ILM history, APM…) even when not flagged as managed. */
+export function isBuiltinTemplateName(name: string): boolean {
+  return /^(logs|metrics|synthetics|traces|profiling|ecs|apm|elastic-connectors|behavioral_analytics|ilm-history|slm-history|watch-history|monitoring|data-streams|search-acl|security|entities)([-@_.].*)?$/.test(name) || name.includes('@')
+}
+
+export interface VisibleCounts {
+  indices: number
+  dataStreams: number
+  aliases: number
+  indexTemplates: number
+  componentTemplates: number
+}
+
+/** Counts of user objects (shown) and system objects (hidden by default). */
+export function treeCounts(t: ClusterTree): { shown: VisibleCounts; system: VisibleCounts } {
+  const split = <T>(list: T[], isSys: (x: T) => boolean) => [list.filter((x) => !isSys(x)).length, list.filter(isSys).length] as const
+  const [i, si] = split(t.indices, isSystemIndex)
+  const [d, sd] = split(t.dataStreams, isSystemDataStream)
+  const [a, sa] = split(t.aliases, isSystemAlias)
+  const [it, sit] = split(t.templates.filter((x) => x.kind === 'index'), isSystemTemplate)
+  const [ct, sct] = split(t.templates.filter((x) => x.kind === 'component'), isSystemTemplate)
+  return {
+    shown: { indices: i, dataStreams: d, aliases: a, indexTemplates: it, componentTemplates: ct },
+    system: { indices: si, dataStreams: sd, aliases: sa, indexTemplates: sit, componentTemplates: sct }
+  }
+}

@@ -1,3 +1,4 @@
+import { treeCounts, type ClusterTree } from '@shared/meta'
 import { Async } from '../../components/Async'
 import { refreshConnection, useTree } from '../../queries'
 import { useApp } from '../../store'
@@ -32,7 +33,7 @@ export function ExplorerScreen({ connectionId }: { connectionId: string }) {
               ↻
             </button>
             {!ex.sel ? (
-              <ClusterHome conn={conn.name} indices={t.indices.filter((i) => !i.hidden).length} aliases={t.aliases.length} templates={t.templates.filter((x) => x.kind === 'index').length} />
+              <ClusterHome conn={conn.name} tree={t} />
             ) : ex.sel.kind === 'index' ? (
               <IndexPage key={ex.sel.name} conn={conn} name={ex.sel.name} />
             ) : ex.sel.kind === 'alias' ? (
@@ -49,13 +50,26 @@ export function ExplorerScreen({ connectionId }: { connectionId: string }) {
   )
 }
 
-function ClusterHome({ conn, indices, aliases, templates }: { conn: string; indices: number; aliases: number; templates: number }) {
+function ClusterHome({ conn, tree }: { conn: string; tree: ClusterTree }) {
+  const { shown, system } = treeCounts(tree)
+  const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString()} ${n === 1 ? one : many}`
+  const parts = [
+    plural(shown.indices, 'index', 'indices'),
+    shown.dataStreams ? plural(shown.dataStreams, 'data stream') : '',
+    plural(shown.aliases, 'alias', 'aliases'),
+    plural(shown.indexTemplates, 'index template')
+  ].filter(Boolean)
+  const hidden = [
+    system.indices ? plural(system.indices, 'index', 'indices') : '',
+    system.dataStreams ? plural(system.dataStreams, 'data stream') : '',
+    system.aliases ? plural(system.aliases, 'alias', 'aliases') : '',
+    system.indexTemplates + system.componentTemplates ? plural(system.indexTemplates + system.componentTemplates, 'template') : ''
+  ].filter(Boolean)
   return (
     <div className="placeholder">
       <h2>{conn}</h2>
-      <div>
-        {indices} indices · {aliases} aliases · {templates} index templates
-      </div>
+      <div>{parts.join(' · ')}</div>
+      {hidden.length > 0 && <div className="hint">plus system objects hidden by “Hide system”: {hidden.join(' · ')}</div>}
       <div className="hint">Pick an index, alias or template on the left.</div>
     </div>
   )
