@@ -17,7 +17,7 @@
     "test": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run",
     "test:watch": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs",
     "postinstall": "electron-builder install-app-deps && node scripts/brand-dev-electron.mjs",
-    "dist": "electron-vite build && electron-builder --mac dmg",
+    "dist": "electron-vite build && electron-builder --mac dmg --x64 && electron-builder --mac dmg --arm64",
     "clusters:up": "docker compose up -d",
     "clusters:down": "docker compose down",
     "clusters:fingerprint": "docker exec kabanos-es8 openssl x509 -fingerprint -sha256 -noout -in /usr/share/elasticsearch/config/certs/http_ca.crt",
@@ -27,7 +27,9 @@
     "pack": "electron-vite build && electron-builder --mac --arm64 --dir",
     "smoke": "playwright test --config playwright.smoke.config.ts",
     "dist:arm64": "electron-vite build && electron-builder --mac dmg --arm64",
-    "predev": "node scripts/brand-dev-electron.mjs"
+    "predev": "node scripts/brand-dev-electron.mjs",
+    "release": "node scripts/release.mjs",
+    "release:dry": "node scripts/release.mjs --dry-run"
   },
   "dependencies": {
     "@aws-crypto/sha256-js": "^5.2.0",

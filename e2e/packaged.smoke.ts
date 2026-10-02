@@ -6,7 +6,7 @@ import { _electron as electron, expect, test } from '@playwright/test'
 import { CLUSTERS, connect } from './helpers'
 
 test('packaged app connects and loads the explorer', async () => {
-  const app = await electron.launch({ executablePath: 'dist/mac-arm64/kabanos.app/Contents/MacOS/kabanos', env: { ...process.env, KABANOS_USER_DATA: mkdtempSync(join(tmpdir(), 'kabanos-pkg-')) } })
+  const app = await electron.launch({ executablePath: process.env.KABANOS_APP ?? 'dist/mac-arm64/kabanos.app/Contents/MacOS/kabanos', env: { ...process.env, KABANOS_USER_DATA: mkdtempSync(join(tmpdir(), 'kabanos-pkg-')) } })
   const page = await app.firstWindow()
   await page.waitForSelector('text=New connection')
   await connect(page, CLUSTERS.es9)

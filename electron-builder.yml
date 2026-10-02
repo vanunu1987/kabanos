@@ -17,10 +17,15 @@ mac:
   target:
     - target: dmg
       arch: [arm64, x64]
-  # Signing + notarization need an Apple Developer ID: set `identity` and `notarize: true`
-  # (with APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID in the environment).
-  identity: null
+  # Ad-hoc signature ("-"): free, and required — an unsigned or half-signed app downloaded from the web
+  # is reported as "damaged" on Apple silicon. Users still approve it once (Privacy & Security → Open Anyway).
+  # With an Apple Developer ID: set `identity` to it and `notarize: true`
+  # (APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID in the environment) and the prompt goes away.
+  identity: '-'
+  # Hardened runtime is only needed for notarization (Developer ID); with an ad-hoc signature it can block launch.
+  hardenedRuntime: false
 dmg:
-  artifactName: ${productName}-${version}-${arch}.${ext}
+  # Stable names: the website links to releases/latest/download/kabanos-mac-<arch>.dmg
+  artifactName: kabanos-mac-${arch}.${ext}
 # No update server yet; add a `publish` provider (e.g. S3 / GitHub) to enable electron-updater.
 publish: null
