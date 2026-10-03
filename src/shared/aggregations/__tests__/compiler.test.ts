@@ -233,3 +233,32 @@ describe('compile', () => {
     }
   })
 })
+
+describe('exclude conditions (must_not)', () => {
+  it('puts every negated condition in must_not', () => {
+    const c = compile({
+      stages: [
+        {
+          id: 'f',
+          kind: 'filter',
+          enabled: true,
+          match: 'all',
+          conditions: [
+            { field: 'status', op: 'is', value: 'active' },
+            { field: 'deleted_at', op: 'missing' },
+            { field: 'city.name', op: 'oneOf', values: ['Haifa'], negate: true },
+            { field: 'price', op: 'between', value: 1, value2: 9, negate: true },
+            { field: 'title', op: 'contains', value: 'basement', negate: true }
+          ]
+        }
+      ]
+    })
+    expect(c.request.query).toEqual({
+      bool: {
+        filter: [{ term: { status: 'active' } }],
+        must_not: [{ exists: { field: 'deleted_at' } }, { terms: { 'city.name': ['Haifa'] } }, { range: { price: { gte: 1, lte: 9 } } }, { match: { title: 'basement' } }]
+      }
+    })
+    expect(c.stages[0]!.paths).toEqual([['query', 'bool', 'filter', 0], ['query', 'bool', 'must_not', 0], ['query', 'bool', 'must_not', 1], ['query', 'bool', 'must_not', 2], ['query', 'bool', 'must_not', 3]])
+  })
+})

@@ -65,3 +65,21 @@ describe('bodySuggestions', () => {
     expect(body('_search', '{"aggs":{"')).toBeNull()
   })
 })
+
+describe('array elements', () => {
+  it('offers whole query objects for a new bool clause element', () => {
+    for (const text of ['{"query":{"bool":{"must_not":[', '{"query":{"bool":{"must_not":[{"term":{"a":1}},', '{"query":{"bool":{"filter":[\n  ', '{"query":{"bool":{"should":[{"exists":{"field":"x"}}, ']) {
+      const w = body('listings/_search', text)
+      expect(w && w.kind === 'keys' && w.element, text).toBe(true)
+      expect(w && w.kind === 'keys' ? w.container : undefined).toBe('query')
+      expect(w && w.kind === 'keys' ? w.keys : []).toEqual(expect.arrayContaining(['exists', 'term', 'match', 'range', 'bool']))
+    }
+  })
+  it('keeps plain keys inside an element and field names in string arrays', () => {
+    const inside = body('listings/_search', '{"query":{"bool":{"must_not":[{')
+    expect(inside && inside.kind === 'keys' ? inside.element : 'x').toBeUndefined()
+    // Inside a string you're typing a value, never a new object.
+    const inString = body('listings/_search', '{"_source":["')
+    expect(inString && inString.kind === 'keys' ? inString.element : undefined).toBeUndefined()
+  })
+})

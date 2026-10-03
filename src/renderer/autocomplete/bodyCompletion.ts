@@ -94,7 +94,7 @@ export function ensureBodyCompletion(): void {
   if (registered) return
   registered = true
   monaco.languages.registerCompletionItemProvider('json', {
-    triggerCharacters: ['"', '.'],
+    triggerCharacters: ['"', '.', '[', '{', ','],
     async provideCompletionItems(model: editor.ITextModel, position: Position): Promise<languages.CompletionList | undefined> {
       const source = sources.get(model.uri.toString())
       if (!source) return undefined

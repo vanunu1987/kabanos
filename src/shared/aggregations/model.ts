@@ -16,6 +16,8 @@ export interface Condition {
   value2?: Scalar
   /** oneOf */
   values?: Scalar[]
+  /** Exclude matching documents (`must_not`): not one of, not between, does not contain… */
+  negate?: boolean
 }
 
 export type MetricOp = 'count' | 'sum' | 'avg' | 'min' | 'max' | 'stats' | 'median' | 'percentiles' | 'cardinality' | 'value_count'
@@ -141,7 +143,7 @@ export const FILTER_OP_LABEL: Record<FilterOp, string> = {
   isNot: 'is not',
   oneOf: 'one of',
   exists: 'exists',
-  missing: 'missing',
+  missing: 'does not exist',
   lt: '<',
   lte: '≤',
   gt: '>',
@@ -149,6 +151,32 @@ export const FILTER_OP_LABEL: Record<FilterOp, string> = {
   between: 'between',
   contains: 'contains text'
 }
+
+/**
+ * Operators as the Filter form offers them: every include operator has an exclude twin.
+ * `value` is the select value; `isNot` and `missing` are dedicated ops, the rest set `negate`.
+ */
+export const FILTER_CHOICES: Array<{ value: string; label: string; op: FilterOp; negate?: boolean }> = [
+  { value: 'is', label: 'is', op: 'is' },
+  { value: 'isNot', label: 'is not', op: 'isNot' },
+  { value: 'oneOf', label: 'one of', op: 'oneOf' },
+  { value: 'not:oneOf', label: 'not one of', op: 'oneOf', negate: true },
+  { value: 'exists', label: 'exists', op: 'exists' },
+  { value: 'missing', label: 'does not exist', op: 'missing' },
+  { value: 'lt', label: '<', op: 'lt' },
+  { value: 'lte', label: '≤', op: 'lte' },
+  { value: 'gt', label: '>', op: 'gt' },
+  { value: 'gte', label: '≥', op: 'gte' },
+  { value: 'between', label: 'between', op: 'between' },
+  { value: 'not:between', label: 'not between', op: 'between', negate: true },
+  { value: 'contains', label: 'contains text', op: 'contains' },
+  { value: 'not:contains', label: 'does not contain', op: 'contains', negate: true }
+]
+
+export const choiceOf = (c: Pick<Condition, 'op' | 'negate'>): string => (c.negate && c.op !== 'isNot' && c.op !== 'missing' ? `not:${c.op}` : c.op)
+
+/** Human label for a condition's operator, e.g. “not one of”. */
+export const conditionLabel = (c: Pick<Condition, 'op' | 'negate'>): string => FILTER_CHOICES.find((x) => x.value === choiceOf(c))?.label ?? (c.negate ? `not ${FILTER_OP_LABEL[c.op]}` : FILTER_OP_LABEL[c.op])
 
 export const CALENDAR_INTERVALS = ['minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'] as const
 

@@ -65,6 +65,20 @@ export async function bodyCompletions(model: editor.ITextModel, position: Positi
       suggestions: want.keys.map((k, i) => {
         const shape = want.shapes?.[k]
         const template = colonFollows ? undefined : (want.container === 'query' ? QUERY_SNIPPETS[k] : want.container === 'agg' ? AGG_SNIPPETS[k] : want.container === 'root' ? ROOT_SNIPPETS[k] : undefined) ?? shapeSnippet(shape?.shape, shape?.values)
+        if (want.element) {
+          // New array element (`"must_not": [ |`): the whole object, like Kibana.
+          const inner = template ? template.replace(/\n/g, '\n\t') : '$0'
+          return {
+            label: { label: k, description: '{ … }' },
+            kind: want.container === 'query' || want.container === 'agg' ? K.Struct : K.Property,
+            insertText: `{\n\t"${k}": ${inner}\n}`,
+            insertTextRules: Rule.InsertAsSnippet,
+            filterText: k,
+            range,
+            sortText: `1${String(i).padStart(3, '0')}`,
+            command: template?.includes('${1:FIELD}') ? retrigger : undefined
+          }
+        }
         return {
           label: { label: k, description: shape && shape.shape !== 'any' ? shape.shape : undefined },
           kind: want.container === 'query' || want.container === 'agg' ? K.Struct : K.Property,

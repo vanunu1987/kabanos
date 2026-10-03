@@ -80,7 +80,7 @@ export function ensureConsoleLanguage(): void {
   })
 
   monaco.languages.registerCompletionItemProvider(CONSOLE_LANGUAGE, {
-    triggerCharacters: ['"', '/', '?', '&', ' ', '_'],
+    triggerCharacters: ['"', '/', '?', '&', ' ', '_', '[', '{', ','],
     async provideCompletionItems(model: editor.ITextModel, position: Position): Promise<languages.CompletionList> {
       const ctx = contexts.get(model.uri.toString())
       const K = monaco.languages.CompletionItemKind

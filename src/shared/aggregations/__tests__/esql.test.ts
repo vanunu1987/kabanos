@@ -73,3 +73,13 @@ describe('toEsql', () => {
     expect(esqlValue(undefined)).toBe('""')
   })
 })
+
+describe('exclude conditions in ES|QL', () => {
+  it('keeps documents without the field, like must_not', () => {
+    const r = toEsql({
+      target: 'i',
+      stages: [{ id: 'f', kind: 'filter', enabled: true, match: 'all', conditions: [{ field: 'city', op: 'oneOf', values: ['A'], negate: true }, { field: 'p', op: 'between', value: 1, value2: 2, negate: true }] }]
+    })
+    expect(r.lines[1]!.text).toBe('| WHERE (NOT (city IN ("A")) OR city IS NULL) AND (NOT (p >= 1 AND p <= 2) OR p IS NULL)')
+  })
+})

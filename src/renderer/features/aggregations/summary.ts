@@ -1,10 +1,10 @@
 import type { Compiled } from '@shared/aggregations/compiler'
 import { flatten, hitsTotal, levelGroups } from '@shared/aggregations/flatten'
-import { FILTER_OP_LABEL, GROUP_LABEL, METRIC_LABEL, type Condition, type Stage } from '@shared/aggregations/model'
+import { conditionLabel, GROUP_LABEL, METRIC_LABEL, type Condition, type Stage } from '@shared/aggregations/model'
 import type { Preview } from './preview'
 import { fmt, short } from './OutputPanel'
 
-const cond = (c: Condition) => `${c.field || '?'} ${FILTER_OP_LABEL[c.op]}${c.op === 'exists' || c.op === 'missing' ? '' : ` ${c.op === 'oneOf' ? (c.values ?? []).join(', ') : c.op === 'between' ? `${fmt(c.value)} and ${fmt(c.value2)}` : fmt(c.value)}`}`
+const cond = (c: Condition) => `${c.field || '?'} ${conditionLabel(c)}${c.op === 'exists' || c.op === 'missing' ? '' : ` ${c.op === 'oneOf' ? (c.values ?? []).join(', ') : c.op === 'between' ? `${fmt(c.value)} and ${fmt(c.value2)}` : fmt(c.value)}`}`
 
 /** One-line description of a stage (collapsed cards, the “How stages map” panel). */
 export function describe(stage: Stage, compiled?: Compiled, index?: number): string {

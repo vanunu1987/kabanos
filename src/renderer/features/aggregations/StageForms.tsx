@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { defaultGroupName, defaultMetricName } from '@shared/aggregations/compiler'
 import {
   CALENDAR_INTERVALS,
-  FILTER_OP_LABEL,
+  choiceOf,
+  FILTER_CHOICES,
   GROUP_LABEL,
   isDateType,
   isNumericType,
@@ -112,7 +113,17 @@ function ConditionRow({ c, onChange, fields, label }: { c: Condition; onChange(c
   return (
     <>
       <Picker label={`${label} field`} value={c.field} options={opts} onChange={(field) => onChange({ ...c, field })} placeholder="field" allowCustom />
-      <Select label={`${label} operator`} className={['oneOf', 'between', 'exists', 'missing', 'contains', 'isNot'].includes(c.op) ? undefined : 'agg-op'} value={c.op} options={(Object.keys(FILTER_OP_LABEL) as FilterOp[]).map((o) => [o, FILTER_OP_LABEL[o]])} onChange={(op) => onChange({ ...c, op, ...(op === 'oneOf' && !c.values ? { values: c.value !== undefined && c.value !== '' ? [c.value] : [] } : {}) })} />
+      <Select
+        label={`${label} operator`}
+        className={['is', 'lt', 'lte', 'gt', 'gte'].includes(choiceOf(c)) ? 'agg-op' : undefined}
+        value={choiceOf(c)}
+        options={FILTER_CHOICES.map((o) => [o.value, o.label])}
+        onChange={(v) => {
+          const choice = FILTER_CHOICES.find((x) => x.value === v)!
+          const { negate: _old, ...rest } = c
+          onChange({ ...rest, op: choice.op, ...(choice.negate ? { negate: true } : {}), ...(choice.op === 'oneOf' && !c.values ? { values: c.value !== undefined && c.value !== '' ? [c.value] : [] } : {}) })
+        }}
+      />
       {c.op === 'oneOf' ? (
         <div className="agg-chips">
           <ChipInput label={`${label} values`} value={(c.values ?? []).map(String)} onChange={(v) => onChange({ ...c, values: v.map((x) => toValue(x, type)) })} placeholder="value, value…" />

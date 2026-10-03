@@ -23,6 +23,8 @@ export function esqlValue(v: Scalar | undefined): string {
 }
 
 function conditionExpr(c: Condition, warn: (m: string) => void): string {
+  // must_not keeps documents that don't have the field at all; NOT (…) alone would drop them.
+  if (c.negate && c.op !== 'isNot' && c.op !== 'missing') return `(NOT (${conditionExpr({ ...c, negate: false }, warn)}) OR ${esqlId(c.field)} IS NULL)`
   const f = esqlId(c.field)
   switch (c.op) {
     case 'is':

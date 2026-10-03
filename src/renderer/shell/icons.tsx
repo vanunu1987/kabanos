@@ -19,6 +19,11 @@ export const Icon = {
       <path d="M6 6l12 12M18 6L6 18" />
     </svg>
   ),
+  trash: (s = 13): ReactElement => (
+    <svg width={s} height={s} viewBox="0 0 24 24" {...base} strokeWidth={1.9}>
+      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+    </svg>
+  ),
   chevronDown: (s = 12): ReactElement => (
     <svg width={s} height={s} viewBox="0 0 24 24" {...base} strokeWidth={2}>
       <path d="M6 9l6 6 6-6" />

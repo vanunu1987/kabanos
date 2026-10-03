@@ -124,3 +124,23 @@ describe('decompile edge cases', () => {
     expect(compile({ stages: d.stages }).request).toEqual(body)
   })
 })
+
+describe('exclude conditions', () => {
+  it('maps every must_not clause back to an exclude condition', () => {
+    const d = decompile(fixture('exclude.json'))
+    expect(d.unsupported).toEqual([])
+    expect(d.stages[0]).toMatchObject({
+      kind: 'filter',
+      match: 'all',
+      conditions: [
+        { field: 'status', op: 'is' },
+        { field: 'deleted_at', op: 'missing' },
+        { field: 'city.name', op: 'oneOf', negate: true },
+        { field: 'price', op: 'between', negate: true },
+        { field: 'title', op: 'contains', negate: true },
+        { field: 'is_promoted', op: 'isNot', value: true }
+      ]
+    })
+    expect(d.stages[2]).toMatchObject({ kind: 'filter', match: 'any', conditions: [{ op: 'lt', negate: true }, { op: 'missing' }] })
+  })
+})

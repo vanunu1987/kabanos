@@ -137,11 +137,18 @@ export function parseCondition(clause: unknown): Condition | null {
   return c && jsonEqual(conditionClause(c), clause) ? c : null
 }
 
+/** The exclude twin of a condition: is → is not, exists → does not exist, anything else → negate. */
+function negateCondition(c: Condition): Condition {
+  if (c.op === 'is') return { ...c, op: 'isNot' }
+  if (c.op === 'exists') return { ...c, op: 'missing' }
+  return { ...c, negate: true }
+}
+
 /** A clause that may be negated (`bool.must_not: [x]`). */
 export function parseConditionQuery(q: unknown): Condition | null {
   if (isObj(q) && isObj(q.bool) && only(q, 'bool') && only(q.bool, 'must_not') && Array.isArray(q.bool.must_not) && q.bool.must_not.length === 1) {
     const c = parseCondition(q.bool.must_not[0])
-    const neg: Condition | null = c?.op === 'is' ? { ...c, op: 'isNot' } : c?.op === 'exists' ? { ...c, op: 'missing' } : null
+    const neg = c ? negateCondition(c) : null
     return neg && jsonEqual(conditionQuery(neg), q) ? neg : null
   }
   return parseCondition(q)
@@ -184,9 +191,8 @@ function boolStages(q: Json): Array<StageOf<'filter'>> | null {
     const negs: Condition[] = []
     for (const clause of mustNot) {
       const c = parseCondition(clause)
-      if (c?.op === 'is') negs.push({ ...c, op: 'isNot' })
-      else if (c?.op === 'exists') negs.push({ ...c, op: 'missing' })
-      else return null
+      if (!c) return null
+      negs.push(negateCondition(c))
     }
     const lastAll = [...stages].reverse().find((s) => !s.raw && s.match === 'all')
     if (lastAll) lastAll.conditions.push(...negs)

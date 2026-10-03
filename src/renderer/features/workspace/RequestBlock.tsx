@@ -37,6 +37,14 @@ export function RequestBlock({ block, conn, defaultTarget, context, autoFocus }:
     useApp.getState().showToast('Copied as cURL (credentials not included)')
   }
 
+  // The one-click trash button: saved or pinned queries stay in the library, so close at once;
+  // anything else is gone for good, so ask first. (The ⋯ menu's “Delete block” is already explicit.)
+  const keptInLibrary = q.folderId !== null || q.pinned
+  const remove = () => {
+    if (!keptInLibrary && !confirm(`Delete “${q.title || parsed?.path || 'this request'}”? It isn’t saved in the library.`)) return
+    void ws.removeBlock(q.id)
+  }
+
   return (
     <div id={`block-${q.id}`} data-text={text} className={`block${active ? ' active' : ''}${block.collapsed ? ' collapsed' : ''}`} onMouseDown={() => !active && ws.setActive(q.id)}>
       <div
@@ -110,11 +118,19 @@ export function RequestBlock({ block, conn, defaultTarget, context, autoFocus }:
               { label: 'Move up', onSelect: () => ws.move(q.id, -1) },
               { label: 'Move down', onSelect: () => ws.move(q.id, 1) },
               'sep',
-              { label: q.folderId ? 'Close (stays in library)' : 'Delete block', danger: !q.folderId, onSelect: () => ws.removeBlock(q.id) }
+              { label: q.folderId ? 'Close (stays in library)' : 'Delete block', danger: !q.folderId, onSelect: () => void ws.removeBlock(q.id) }
             ]}
           >
             ⋯
           </Menu>
+          <button
+            className="icon-btn xs block-delete"
+            aria-label={keptInLibrary ? `Close ${q.title || 'request'} (stays in library)` : `Delete ${q.title || 'request'}`}
+            title={keptInLibrary ? 'Close — stays in the library' : 'Delete block'}
+            onClick={remove}
+          >
+            {Icon.trash()}
+          </button>
         </span>
       </div>
       {!block.collapsed && (

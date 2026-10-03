@@ -436,7 +436,7 @@ export function compile(pipeline: Pick<Pipeline, 'stages'>, opts: CompileOptions
         if (stage.raw || stage.match === 'any') p.push(['query', 'bool', 'filter', fi++])
         else
           for (const c of stage.conditions) {
-            if (c.op === 'isNot' || c.op === 'missing') p.push(['query', 'bool', 'must_not', ni++])
+            if (isNegated(c)) p.push(['query', 'bool', 'must_not', ni++])
             else p.push(['query', 'bool', 'filter', fi++])
           }
       }
@@ -509,7 +509,7 @@ export function conditionClause(c: Condition): Json {
   }
 }
 
-export const isNegated = (c: Condition) => c.op === 'isNot' || c.op === 'missing'
+export const isNegated = (c: Condition) => c.op === 'isNot' || c.op === 'missing' || !!c.negate
 
 /** A clause that is true for the condition, negations included. */
 export function conditionQuery(c: Condition): Json {

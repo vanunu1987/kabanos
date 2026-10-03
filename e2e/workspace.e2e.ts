@@ -66,6 +66,33 @@ test('body autocomplete: spec keys and mapping fields', async () => {
   await expect(blocks()).toHaveCount(1)
 })
 
+test('array elements autocomplete whole query objects (must_not: [ … ])', async () => {
+  await addBlock()
+  await pasteInto(app, page, lastEditor(), 'POST listings/_search\n{"size": 0, "query":{"bool":{"must_not":[\n  \n]}}}')
+  await page.keyboard.press('Meta+ArrowUp')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('End')
+  await suggest(page, 'exists')
+  // Pick “exists” from the list: it inserts the whole element, not just “{”.
+  await page.locator('.suggest-widget.visible .monaco-list-row', { hasText: /^exists/ }).first().click()
+  await page.keyboard.press('Escape')
+  await page.keyboard.type('seller_id')
+  await expect(blocks().last()).toHaveAttribute('data-text', /"must_not":\[\s*\{\s*"exists": \{\s*"field": "seller_id"/)
+  await blocks().last().getByRole('button', { name: 'Run this request' }).click()
+  await expect(page.locator('.response-pane .status-badge')).toHaveText('200')
+})
+
+test('delete a block straight from its header, even when collapsed', async () => {
+  const n = await blocks().count()
+  const block = blocks().last()
+  await block.locator('.block-head').click({ position: { x: 400, y: 12 } })
+  await expect(block).toHaveClass(/collapsed/)
+  page.once('dialog', (d) => void d.accept())
+  await block.getByRole('button', { name: /^Delete / }).click()
+  await expect(blocks()).toHaveCount(n - 1)
+})
+
 test('import a Kibana console export into titled blocks', async () => {
   await page.getByRole('button', { name: 'Import…' }).click()
   await page.getByLabel('Console text').fill('### Cluster health\nGET _cluster/health\n\n# Count active listings\nPOST listings/_count\n{ "query": { "term": { "status": "active" } } }\n\n// Biggest indices\nGET _cat/indices?s=store.size:desc&format=json\n')

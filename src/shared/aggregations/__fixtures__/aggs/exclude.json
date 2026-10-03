@@ -1,0 +1,24 @@
+{
+  "size": 0,
+  "query": { "bool": {
+    "filter": [{ "term": { "status": "active" } }],
+    "must_not": [
+      { "exists": { "field": "deleted_at" } },
+      { "terms": { "city.name": ["Haifa", "Eilat"] } },
+      { "range": { "price": { "gte": 100, "lte": 500 } } },
+      { "match": { "title": "basement" } },
+      { "term": { "is_promoted": true } }
+    ]
+  } },
+  "aggs": {
+    "by_city": {
+      "terms": { "field": "city.name", "size": 5 },
+      "aggs": {
+        "not_cheap": {
+          "filter": { "bool": { "should": [{ "bool": { "must_not": [{ "range": { "price": { "lt": 300000 } } }] } }, { "bool": { "must_not": [{ "exists": { "field": "rooms" } }] } }], "minimum_should_match": 1 } },
+          "aggs": { "avg_price": { "avg": { "field": "price" } } }
+        }
+      }
+    }
+  }
+}

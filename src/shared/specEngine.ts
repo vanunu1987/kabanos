@@ -115,6 +115,8 @@ export type BodyWant =
       shapes?: Record<string, { shape: KeyShape; values?: string[] }>
       /** What the container is — drives Kibana-style templates (query clauses, aggregations, top level). */
       container?: 'query' | 'agg' | 'root' | 'other'
+      /** The cursor starts a new array element: insert the whole object, `{ "key": … }`. */
+      element?: true
     }
   | { kind: 'fields' }
   | { kind: 'values'; values: string[] }
@@ -171,12 +173,12 @@ export function bodySuggestions(spec: Spec, bodyRef: Ref, ctx: JsonCursorContext
     refs = step(spec, refs, k)
     if (refs.length === 0) return null
   }
-  if (ctx.position === 'key') {
-    if (refs.some((r) => Array.isArray(r) && r[0] === 'd' && r[2] === 1)) return { kind: 'fields' }
-    if (refs.some((r) => Array.isArray(r) && r[0] === 'd')) return null // free-form names (aggs, runtime fields)
+  const objectKeys = (types: Ref[], element: boolean): BodyWant => {
+    if (types.some((r) => Array.isArray(r) && r[0] === 'd' && r[2] === 1)) return element ? null : { kind: 'fields' }
+    if (types.some((r) => Array.isArray(r) && r[0] === 'd')) return null // free-form names (aggs, runtime fields)
     const keys = new Set<string>()
     const shapes: Record<string, { shape: KeyShape; values?: string[] }> = {}
-    for (const r of refs) {
+    for (const r of types) {
       if (typeof r !== 'string') continue
       for (const [k, v] of Object.entries(spec.types[r]?.p ?? {})) {
         if (k === '*field') continue
@@ -184,9 +186,16 @@ export function bodySuggestions(spec: Spec, bodyRef: Ref, ctx: JsonCursorContext
         shapes[k] ??= shapeOf(spec, v)
       }
     }
-    const container = refs.includes('_types.query_dsl:QueryContainer') ? 'query' : refs.includes('_types.aggregations:AggregationContainer') ? 'agg' : ctx.path.length === 0 ? 'root' : 'other'
-    if (refs.some((r) => typeof r === 'string' && spec.types[r]?.p?.['*field'])) return keys.size ? { kind: 'keys', keys: [...keys], shapes, container } : { kind: 'fields' }
-    return keys.size ? { kind: 'keys', keys: [...keys], shapes, container } : null
+    const container = types.includes('_types.query_dsl:QueryContainer') ? 'query' : types.includes('_types.aggregations:AggregationContainer') ? 'agg' : ctx.path.length === 0 ? 'root' : 'other'
+    const extra = element ? { element: true as const } : {}
+    if (types.some((r) => typeof r === 'string' && spec.types[r]?.p?.['*field'])) return keys.size ? { kind: 'keys', keys: [...keys], shapes, container, ...extra } : element ? null : { kind: 'fields' }
+    return keys.size ? { kind: 'keys', keys: [...keys], shapes, container, ...extra } : null
+  }
+  if (ctx.position === 'key') return objectKeys(refs, false)
+  // A new element of an array of objects (`"must_not": [ |`): offer the object's keys, wrapped in { }.
+  if (ctx.container === 'array' && !ctx.inString && !refs.some((r) => r === 'field' || r === 'fields')) {
+    const asObject = objectKeys(refs, true)
+    if (asObject) return asObject
   }
   // Value position: the type of `key` inside the current container (or the array's items).
   const target = ctx.container === 'array' ? refs : ctx.key ? step(spec, refs, ctx.key) : refs
