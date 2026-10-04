@@ -22,7 +22,7 @@ interface Row {
  * Cluster tree: indices, data streams, aliases, templates. `compact` is the narrower variant
  * used beside the Index view, where clicking opens a query tab instead of the inspector.
  */
-export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: ConnectionConfig; tree: ClusterTree; compact?: boolean; onPick(sel: ExplorerSel): void; selected?: ExplorerSel }) {
+export function ExplorerTree({ conn, tree, compact, onPick, selected, onCreateTemplate }: { conn: ConnectionConfig; tree: ClusterTree; compact?: boolean; onPick(sel: ExplorerSel): void; selected?: ExplorerSel; onCreateTemplate?(kind: 'index' | 'component'): void }) {
   const [filter, setFilter] = useState('')
   const [hideSystem, setHideSystem] = useState(true)
   const [hideClosed, setHideClosed] = useState(false)
@@ -72,8 +72,8 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
       { name: 'Aliases', rows: aliases },
       { name: 'Index templates', rows: tpl('index') },
       { name: 'Component templates', rows: tpl('component') }
-    ].filter((s) => s.rows.length > 0 || s.name === 'Indices')
-  }, [tree, filter, hideSystem, hideClosed, sort])
+    ].filter((s) => s.rows.length > 0 || s.name === 'Indices' || (!q && !!onCreateTemplate && s.name.endsWith('templates')))
+  }, [tree, filter, hideSystem, hideClosed, sort, onCreateTemplate])
 
   const allCollapsed = sections.every((sec) => collapsed.has(sec.name))
   const sectionButtons = (
@@ -150,11 +150,23 @@ export function ExplorerTree({ conn, tree, compact, onPick, selected }: { conn: 
           const rows = showAll.has(sec.name) ? sec.rows : sec.rows.slice(0, LIMIT)
           return (
             <div key={sec.name} className="tree-section">
-              <button className={`tree-sec-head${isCollapsed ? ' collapsed' : ''}`} onClick={() => setCollapsed((c) => toggle(c, sec.name))} aria-expanded={!isCollapsed}>
-                {Icon.chevronDown()}
-                <span>{sec.name}</span>
-                <span className="count">{sec.rows.length}</span>
-              </button>
+              <div className="tree-sec-row">
+                <button className={`tree-sec-head${isCollapsed ? ' collapsed' : ''}`} onClick={() => setCollapsed((c) => toggle(c, sec.name))} aria-expanded={!isCollapsed}>
+                  {Icon.chevronDown()}
+                  <span>{sec.name}</span>
+                  <span className="count">{sec.rows.length}</span>
+                </button>
+                {onCreateTemplate && sec.name.endsWith('templates') && (
+                  <button
+                    className="icon-btn xs tree-sec-add"
+                    aria-label={`New ${sec.name === 'Index templates' ? 'index' : 'component'} template`}
+                    title={`New ${sec.name === 'Index templates' ? 'index' : 'component'} template`}
+                    onClick={() => onCreateTemplate(sec.name === 'Index templates' ? 'index' : 'component')}
+                  >
+                    {Icon.plus(12)}
+                  </button>
+                )}
+              </div>
               {!isCollapsed && (
                 <>
                   {rows.map((r) => {

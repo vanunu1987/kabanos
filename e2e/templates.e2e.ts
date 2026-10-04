@@ -79,3 +79,32 @@ test('a rejected change shows the cluster error', async () => {
   await expect(dialog).toHaveCount(0)
   await expect.poll(async () => (await tpl()).priority).toBe(200)
 })
+
+test('from the index view, a template opens its own page — not a query tab', async () => {
+  await page.locator('.tree-row[title="listings-v7"]').click()
+  await page.getByRole('button', { name: 'Query this index' }).click()
+  await expect(page.getByRole('tab', { name: 'Aggregations', exact: true })).toBeVisible()
+  await page.locator('.tree-row', { hasText: 'listings-template' }).click()
+  await expect(page.locator('h1')).toHaveText('listings-template')
+  await expect(page.getByRole('button', { name: 'Edit template JSON' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Aggregations', exact: true })).toHaveCount(0)
+})
+
+test('create a new index template', async () => {
+  await page.getByRole('button', { name: 'New index template' }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Name').fill('e2e-orders-template')
+  await expect(dialog.locator('.monaco-editor')).toContainText('e2e-orders-*') // pattern follows the name
+  await dialog.getByRole('button', { name: 'Create template' }).click()
+  await expect(page.locator('.toast')).toContainText('Created index template e2e-orders-template')
+  await expect(page.locator('h1')).toHaveText('e2e-orders-template')
+  const res = (await (await fetch('http://localhost:9202/_index_template/e2e-orders-template', { headers: AUTH })).json()) as { index_templates: Array<{ index_template: { index_patterns: string[] } }> }
+  expect(res.index_templates[0]!.index_template.index_patterns).toEqual(['e2e-orders-*'])
+  // An existing name is refused before sending.
+  await page.getByRole('button', { name: 'New index template' }).click()
+  await page.getByRole('dialog').getByLabel('Name').fill('e2e-orders-template')
+  await expect(page.getByRole('dialog')).toContainText('A template with that name exists')
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Create template' })).toBeDisabled()
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click()
+  await fetch('http://localhost:9202/_index_template/e2e-orders-template', { method: 'DELETE', headers: AUTH })
+})

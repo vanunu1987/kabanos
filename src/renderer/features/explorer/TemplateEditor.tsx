@@ -6,6 +6,8 @@ import { api, KabanosError } from '../../api'
 import { refreshConnection } from '../../queries'
 import { useApp } from '../../store'
 import { reason } from './indexActions'
+import { CodeEditor } from '../../components/CodeEditor'
+import { Modal } from '../../components/Modal'
 import { FieldModal, JsonModal, type FieldTarget } from './MappingEditor'
 import { MappingTable } from './MappingTable'
 
@@ -87,5 +89,111 @@ export function TemplateMappingEditor({ conn, t }: { conn: ConnectionConfig; t: 
         />
       )}
     </>
+  )
+}
+
+const STARTERS = {
+  index: (name: string) => ({
+    index_patterns: [`${name || 'logs'}-*`],
+    priority: 100,
+    template: {
+      settings: { number_of_shards: 1, number_of_replicas: 1 },
+      mappings: { properties: { '@timestamp': { type: 'date' }, message: { type: 'text' } } },
+      aliases: {}
+    },
+    composed_of: [],
+    _meta: { description: '' }
+  }),
+  component: () => ({ template: { mappings: { properties: {} } }, _meta: { description: '' } })
+}
+
+/** Create an index or component template from a JSON body (PUT _index_template / _component_template). */
+export function CreateTemplateModal({ conn, kind, existing, onClose, onCreated }: { conn: ConnectionConfig; kind: 'index' | 'component'; existing: string[]; onClose(): void; onCreated(name: string): void }) {
+  const [name, setName] = useState('')
+  const [text, setText] = useState(() => JSON.stringify(STARTERS[kind](''), null, 2))
+  const [touched, setTouched] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const nameError = !name.trim()
+    ? null
+    : !/^[a-z0-9][a-z0-9._-]*$/.test(name.trim())
+      ? 'Use lowercase letters, numbers, dots, dashes and underscores'
+      : existing.includes(name.trim())
+        ? 'A template with that name exists — open it to edit it'
+        : null
+
+  const create = async () => {
+    setError(null)
+    let body: unknown
+    try {
+      body = JSON.parse(text)
+    } catch (e) {
+      return setError(`Invalid JSON: ${(e as Error).message}`)
+    }
+    setBusy(true)
+    try {
+      const n = name.trim()
+      const res = await api.cluster.request({ connectionId: conn.id, method: 'PUT', path: `${kind === 'index' ? '_index_template' : '_component_template'}/${encodeURIComponent(n)}`, body: JSON.stringify(body) })
+      if (res.status >= 400) return setError(reason(res.body))
+      await refreshConnection(conn.id)
+      useApp.getState().showToast(`Created ${kind} template ${n}`)
+      onCreated(n)
+    } catch (e) {
+      setError(e instanceof KabanosError && e.code === 'NOT_CONFIRMED' ? 'Not created — confirmation declined' : (e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal
+      title={kind === 'index' ? 'New index template' : 'New component template'}
+      width={720}
+      onClose={onClose}
+      actions={
+        <>
+          {error && <span className="hint error left">{error}</span>}
+          <button className="btn md" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn md primary" disabled={busy || !name.trim() || !!nameError} onClick={create}>
+            {busy ? 'Creating…' : 'Create template'}
+          </button>
+        </>
+      }
+    >
+      <div className="field">
+        <label htmlFor="tpl-name">Name</label>
+        <input
+          id="tpl-name"
+          className="input mono"
+          autoFocus
+          value={name}
+          placeholder={kind === 'index' ? 'logs-template' : 'base-settings'}
+          spellCheck={false}
+          onChange={(e) => {
+            setName(e.target.value)
+            // Until the body is edited, keep the starter's index pattern in step with the name.
+            if (!touched && kind === 'index') setText(JSON.stringify(STARTERS.index(e.target.value.trim().replace(/[-_]?template$/, '')), null, 2))
+          }}
+        />
+        {nameError && <span className="hint error">{nameError}</span>}
+      </div>
+      <span className="hint">
+        {kind === 'index'
+          ? 'Applies to indices created from now on whose names match index_patterns. composed_of lists component templates to include.'
+          : 'A reusable block of settings, mappings and aliases that index templates include through composed_of.'}
+      </span>
+      <div className="editor-box" style={{ height: 360 }}>
+        <CodeEditor
+          value={text}
+          onChange={(v) => {
+            setTouched(true)
+            setText(v)
+          }}
+          path={`template://new/${kind}`}
+        />
+      </div>
+    </Modal>
   )
 }

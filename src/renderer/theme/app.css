@@ -603,3 +603,8 @@ body.resizing iframe, body.resizing .monaco-editor { pointer-events: none; }
 .import-row:hover { background: var(--selected); }
 .import-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .import-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+
+.tree-sec-row { display: flex; align-items: center; }
+.tree-sec-row .tree-sec-head { flex: 1; min-width: 0; }
+.tree-sec-add { margin-right: 6px; opacity: 0.6; }
+.tree-sec-row:hover .tree-sec-add, .tree-sec-add:focus-visible { opacity: 1; }

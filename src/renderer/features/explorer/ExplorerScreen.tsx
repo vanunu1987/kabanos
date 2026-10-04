@@ -6,18 +6,22 @@ import { IndexView } from '../indexView/IndexView'
 import { ExplorerTree, useConnection } from './ExplorerTree'
 import { IndexPage } from './IndexPage'
 import { AliasPage, DataStreamPage, TemplatePage } from './OtherPages'
+import { CreateTemplateModal } from './TemplateEditor'
+import { useState } from 'react'
 
 export function ExplorerScreen({ connectionId }: { connectionId: string }) {
   const conn = useConnection(connectionId)
   const tree = useTree(connectionId)
   const ex = useApp((s) => s.explorer[connectionId]) ?? useApp.getState().explorerOf(connectionId)
   const { select, openQuery } = useApp.getState()
+  const [creating, setCreating] = useState<'index' | 'component' | null>(null)
   if (!conn) return null
 
   if (ex.mode === 'query' && ex.activeQuery) {
     return (
       <>
-        {tree.data && <ExplorerTree conn={conn} tree={tree.data} compact onPick={(sel) => openQuery(conn.id, sel.name)} selected={{ kind: 'index', name: ex.activeQuery }} />}
+        {/* Indices, aliases and data streams open as query tabs; templates aren't queryable — they open their own page. */}
+        {tree.data && <ExplorerTree conn={conn} tree={tree.data} compact onPick={(sel) => (sel.kind === 'template' ? select(conn.id, sel) : openQuery(conn.id, sel.name))} selected={{ kind: 'index', name: ex.activeQuery }} />}
         <IndexView conn={conn} />
       </>
     )
@@ -27,7 +31,16 @@ export function ExplorerScreen({ connectionId }: { connectionId: string }) {
     <Async query={tree}>
       {(t) => (
         <>
-          <ExplorerTree conn={conn} tree={t} onPick={(sel) => select(conn.id, sel)} selected={ex.sel} />
+          <ExplorerTree conn={conn} tree={t} onPick={(sel) => select(conn.id, sel)} selected={ex.sel} onCreateTemplate={(kind) => setCreating(kind)} />
+          {creating && (
+            <CreateTemplateModal
+              conn={conn}
+              kind={creating}
+              existing={t.templates.filter((x) => x.kind === creating).map((x) => x.name)}
+              onClose={() => setCreating(null)}
+              onCreated={(name) => (setCreating(null), select(conn.id, { kind: 'template', name }))}
+            />
+          )}
           <main className="main explorer-main">
             <button className="icon-btn refresh-btn" title="Refresh metadata" aria-label="Refresh metadata" onClick={() => refreshConnection(conn.id)}>
               ↻

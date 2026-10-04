@@ -85,6 +85,26 @@ function TargetPane({ conn, target }: { conn: ConnectionConfig; target: string }
     return { kind: alias ? 'alias' : ds ? 'data stream' : 'pattern', docs: rows.reduce((n, i) => n + i.docs, 0), bytes: rows.reduce((n, i) => n + i.storeBytes, 0), health: ds?.health ?? rows[0]?.health ?? 'unknown', closed: false }
   }, [tree.data, target])
 
+  // Templates aren't queryable: a template opened here (e.g. a tab restored from before) points to its own page.
+  const t = tree.data
+  const isTemplateOnly = !!t && t.templates.some((x) => x.name === target) && !t.indices.some((i) => i.name === target) && !t.aliases.some((x) => x.name === target) && !t.dataStreams.some((d) => d.name === target)
+  if (isTemplateOnly)
+    return (
+      <div className="empty-state">
+        <h2 className="mono">{target}</h2>
+        <p className="hint">This is an index template, not an index — it can’t be queried. Open its page to read and change its settings, mappings and patterns.</p>
+        <button
+          className="btn md primary"
+          onClick={() => {
+            useApp.getState().closeQuery(conn.id, target)
+            useApp.getState().select(conn.id, { kind: 'template', name: target })
+          }}
+        >
+          Open template
+        </button>
+      </div>
+    )
+
   return (
     <>
       <div className="iv-head">
