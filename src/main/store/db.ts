@@ -1,12 +1,14 @@
+import { randomUUID } from 'node:crypto'
 import Database from 'better-sqlite3'
 
 export type Db = Database.Database
+type Migration = string | ((db: Db) => void)
 
 /**
  * Ordered migrations. Append only — never edit a shipped entry.
  * Later milestones add the library, workspace, history and routine tables.
  */
-const MIGRATIONS: string[] = [
+const MIGRATIONS: Migration[] = [
   /* 1: connections + secrets */ `
   CREATE TABLE connections (
     id           TEXT PRIMARY KEY,
@@ -150,8 +152,97 @@ const MIGRATIONS: string[] = [
   // 5: aggregation pipelines are library items too (body = compiled request, pipeline = the stages as JSON).
   `
   ALTER TABLE queries ADD COLUMN pipeline TEXT;
+  `,
+  // 6: queries, folders and workspace tabs belong to one cluster (connection), so a query written
+  // for one cluster can't be run on another by accident. Existing data is assigned in scopeToClusters().
   `
+  ALTER TABLE queries ADD COLUMN connection_id TEXT REFERENCES connections(id) ON DELETE SET NULL;
+  ALTER TABLE folders ADD COLUMN connection_id TEXT REFERENCES connections(id) ON DELETE SET NULL;
+  ALTER TABLE workspace_tabs ADD COLUMN connection_id TEXT REFERENCES connections(id) ON DELETE CASCADE;
+  CREATE INDEX queries_connection ON queries(connection_id);
+  CREATE INDEX folders_connection ON folders(connection_id);
+  CREATE INDEX tabs_connection ON workspace_tabs(connection_id);
+  `,
+  (db) => scopeToClusters(db)
 ]
+
+/**
+ * Migration 7: give existing queries, folders and tabs a cluster.
+ * - A query goes to the cluster it last ran on (history), else the one its saved pipeline names, else the first cluster.
+ * - A folder goes to the cluster of the queries in it; when it holds queries of several clusters, each other
+ *   cluster gets its own copy of the folder path (same names) and its queries move there.
+ * - A tab goes to the cluster most of its blocks belong to; blocks of other clusters move to a copy of the tab.
+ */
+export function scopeToClusters(db: Db): void {
+  const conns = (db.prepare('SELECT id FROM connections ORDER BY created_at, rowid').all() as Array<{ id: string }>).map((c) => c.id)
+  if (!conns.length) return
+  const known = new Set(conns)
+  const first = conns[0]!
+
+  const queries = db.prepare('SELECT id, folder_id, pipeline FROM queries').all() as Array<{ id: string; folder_id: string | null; pipeline: string | null }>
+  const lastRun = db.prepare('SELECT connection_id FROM history WHERE query_id = ? ORDER BY id DESC LIMIT 1')
+  const setQuery = db.prepare('UPDATE queries SET connection_id = ? WHERE id = ?')
+  const connOf = new Map<string, string>()
+  for (const q of queries) {
+    let c = (lastRun.get(q.id) as { connection_id: string } | undefined)?.connection_id
+    if (!c || !known.has(c)) {
+      try {
+        c = (JSON.parse(q.pipeline ?? 'null') as { connectionId?: string } | null)?.connectionId
+      } catch {
+        c = undefined
+      }
+    }
+    if (!c || !known.has(c)) c = first
+    connOf.set(q.id, c)
+    setQuery.run(c, q.id)
+  }
+
+  // Folders: copy folder paths per cluster as needed.
+  const folders = new Map((db.prepare('SELECT id, parent_id, name, sort FROM folders').all() as Array<{ id: string; parent_id: string | null; name: string; sort: number }>).map((f) => [f.id, f]))
+  const owner = new Map<string, string>() // original folder id → cluster that keeps it
+  const copies = new Map<string, string>() // `${folderId}|${cluster}` → folder id for that cluster
+  const insertFolder = db.prepare('INSERT INTO folders (id, parent_id, name, sort, connection_id) VALUES (?, ?, ?, ?, ?)')
+  const folderFor = (folderId: string, c: string): string => {
+    const key = `${folderId}|${c}`
+    const done = copies.get(key)
+    if (done) return done
+    const f = folders.get(folderId)!
+    const parent = f.parent_id && folders.has(f.parent_id) ? folderFor(f.parent_id, c) : null
+    let id: string
+    if (!owner.has(folderId) || owner.get(folderId) === c) {
+      owner.set(folderId, c)
+      id = folderId
+      db.prepare('UPDATE folders SET connection_id = ?, parent_id = ? WHERE id = ?').run(c, parent, id)
+    } else {
+      id = randomUUID()
+      insertFolder.run(id, parent, f.name, f.sort, c)
+    }
+    copies.set(key, id)
+    return id
+  }
+  for (const q of queries) if (q.folder_id && folders.has(q.folder_id)) db.prepare('UPDATE queries SET folder_id = ? WHERE id = ?').run(folderFor(q.folder_id, connOf.get(q.id)!), q.id)
+  // Empty folders stay with the first cluster.
+  for (const id of folders.keys()) if (!owner.has(id)) folderFor(id, first)
+
+  // Tabs: one per cluster, splitting mixed tabs.
+  const tabs = db.prepare('SELECT * FROM workspace_tabs').all() as Array<{ id: string; name: string; sort: number; default_target: string | null; env_id: string | null }>
+  for (const t of tabs) {
+    const blocks = db.prepare('SELECT query_id FROM workspace_blocks WHERE tab_id = ?').all(t.id) as Array<{ query_id: string }>
+    const byConn = new Map<string, string[]>()
+    for (const b of blocks) {
+      const c = connOf.get(b.query_id) ?? first
+      byConn.set(c, [...(byConn.get(c) ?? []), b.query_id])
+    }
+    const ranked = [...byConn.entries()].sort((a, b) => b[1].length - a[1].length)
+    const main = ranked[0]?.[0] ?? first
+    db.prepare('UPDATE workspace_tabs SET connection_id = ? WHERE id = ?').run(main, t.id)
+    for (const [c, ids] of ranked.slice(1)) {
+      const copy = randomUUID()
+      db.prepare('INSERT INTO workspace_tabs (id, name, sort, default_target, env_id, connection_id) VALUES (?, ?, ?, ?, ?, ?)').run(copy, t.name, t.sort, t.default_target, t.env_id, c)
+      for (const q of ids) db.prepare('UPDATE workspace_blocks SET tab_id = ? WHERE tab_id = ? AND query_id = ?').run(copy, t.id, q)
+    }
+  }
+}
 
 export function openDb(file: string): Db {
   const db = new Database(file)
@@ -165,7 +256,9 @@ export function migrate(db: Db): void {
   const current = db.pragma('user_version', { simple: true }) as number
   for (let v = current; v < MIGRATIONS.length; v++) {
     db.transaction(() => {
-      db.exec(MIGRATIONS[v]!)
+      const m = MIGRATIONS[v]!
+      if (typeof m === 'string') db.exec(m)
+      else m(db)
       db.pragma(`user_version = ${v + 1}`)
     })()
   }

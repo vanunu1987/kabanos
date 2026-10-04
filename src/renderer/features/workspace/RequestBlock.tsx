@@ -139,6 +139,7 @@ export function RequestBlock({ block, conn, defaultTarget, context, autoFocus }:
       {!block.collapsed && !parsed && <div className="block-error">First line must be a request line, e.g. <span className="mono">GET _cluster/health</span></div>}
       {saving && (
         <SaveQueryModal
+          connectionId={q.connectionId ?? useWorkspace.getState().connectionId ?? ''}
           initial={{ title: q.title || (parsed ? `${parsed.method} ${parsed.path}` : ''), folderId: q.folderId, tags: q.tags }}
           onClose={() => setSaving(false)}
           onSave={async (v) => {

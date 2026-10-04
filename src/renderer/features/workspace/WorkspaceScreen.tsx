@@ -43,10 +43,11 @@ export function WorkspaceScreen() {
   }, [])
   const envs = useQuery({ queryKey: ['envs', ws.libraryVersion], queryFn: () => api.env.list() })
 
+  // Each cluster has its own workspace: switching the connection tab switches tabs, blocks and library.
   useEffect(() => {
-    void ws.load()
+    void ws.load(connId ?? undefined)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [connId])
 
   const tab = ws.tabs.find((t) => t.id === ws.activeTab)
   const blocks = ws.activeTab ? (ws.blocks[ws.activeTab] ?? []) : []
@@ -76,9 +77,22 @@ export function WorkspaceScreen() {
 
   const addBlock = () => ws.newBlock()
 
+  if (!connId || !conn)
+    return (
+      <main className="main workspace">
+        <div className="empty-state">
+          <h2>No cluster open</h2>
+          <p className="hint">Every cluster has its own workspace and query library, so a query written for one cluster never runs on another by mistake. Open a connection to see its queries.</p>
+          <button className="btn md primary" onClick={() => useApp.getState().setView('connections')}>
+            Go to Connections
+          </button>
+        </div>
+      </main>
+    )
+
   return (
     <>
-      <LibrarySidebar />
+      <LibrarySidebar connection={conn} />
       <main className="main workspace">
         <div className="qtabs" role="tablist" aria-label="Workspace tabs">
           {ws.tabs.map((t) => (
@@ -150,14 +164,10 @@ export function WorkspaceScreen() {
             ))}
             <option value="__manage">Manage environments…</option>
           </select>
-          {conn ? (
-            <span className="ws-conn" title="Requests run against the active connection tab">
-              <span className="dot" style={{ background: COLORS[conn.color] }} /> {conn.name}
-              {conn.isProd && <span className="pill tiny" style={{ color: 'var(--red)' }}>prod</span>}
-            </span>
-          ) : (
-            <span className="hint" style={{ color: 'var(--yellow)' }}>No connection open</span>
-          )}
+          <span className="ws-conn" title={`This workspace belongs to ${conn.name}: its queries only run on this cluster`}>
+            <span className="dot" style={{ background: COLORS[conn.color] }} /> {conn.name}
+            {conn.isProd && <span className="pill tiny" style={{ color: 'var(--red)' }}>prod</span>}
+          </span>
           <div className="spacer" />
           <button className="btn xs ghost" onClick={() => ws.setCollapsed(blocks.map((b) => b.queryId), !allCollapsed)} disabled={!blocks.length}>
             {allCollapsed ? 'Expand all' : 'Collapse all'}

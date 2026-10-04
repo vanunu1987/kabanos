@@ -5,16 +5,20 @@ import { api } from '../../api'
 import { Menu } from '../../components/Menu'
 import { relTime } from '../../components/time'
 import { Icon } from '../../shell/icons'
-import { useApp } from '../../store'
+import { COLORS, useApp } from '../../store'
 import { openSavedPipeline } from '../aggregations/AggregationsTab'
 import { tabKey, useQueryTabs } from '../indexView/state'
 import { useWorkspace } from './store'
+import { ImportFromClusterModal } from './ImportFromClusterModal'
+import type { ConnectionConfig } from '@shared/types'
 
 export const DRAG_TYPE = 'application/x-kabanos-query'
 type Chip = { id: string; label: string; filter: LibraryFilter | 'history' }
 
 /** Query library (SPEC §6): nested folders, Pinned/Recent/History/#tags, FTS search, drag to file. */
-export function LibrarySidebar() {
+export function LibrarySidebar({ connection }: { connection: ConnectionConfig }) {
+  const c = connection.id
+  const [importing, setImporting] = useState(false)
   const version = useWorkspace((s) => s.libraryVersion)
   const activeBlock = useWorkspace((s) => s.activeBlock)
   const { openQuery, bumpLibrary, newBlock } = useWorkspace.getState()
@@ -36,7 +40,7 @@ export function LibrarySidebar() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const tags = useQuery({ queryKey: ['tags', version], queryFn: () => api.library.tags() })
+  const tags = useQuery({ queryKey: ['tags', c, version], queryFn: () => api.library.tags(c) })
   const chips: Chip[] = [
     { id: 'all', label: 'All', filter: { kind: 'all' } },
     { id: 'pinned', label: 'Pinned', filter: { kind: 'pinned' } },
@@ -46,13 +50,13 @@ export function LibrarySidebar() {
   ]
   const active = chips.find((c) => c.id === chip) ?? chips[0]!
 
-  const folders = useQuery({ queryKey: ['folders', version], queryFn: () => api.library.folders() })
+  const folders = useQuery({ queryKey: ['folders', c, version], queryFn: () => api.library.folders(c) })
   const queries = useQuery({
-    queryKey: ['queries', version, active.id, search],
-    queryFn: () => api.library.queries(active.filter === 'history' ? { kind: 'all' } : active.filter, search),
+    queryKey: ['queries', c, version, active.id, search],
+    queryFn: () => api.library.queries(c, active.filter === 'history' ? { kind: 'all' } : active.filter, search),
     enabled: active.filter !== 'history'
   })
-  const history = useQuery({ queryKey: ['history', version, search], queryFn: () => api.library.history(search, 200), enabled: active.filter === 'history' })
+  const history = useQuery({ queryKey: ['history', c, version, search], queryFn: () => api.library.history(c, search, 200), enabled: active.filter === 'history' })
 
   const flat = search.trim() !== '' || active.id !== 'all'
   const tree = useMemo(() => buildTree(folders.data ?? [], queries.data ?? []), [folders.data, queries.data])
@@ -79,7 +83,7 @@ export function LibrarySidebar() {
   })
 
   const newFolder = async (parentId: string | null = null) => {
-    const f = await api.library.createFolder('New folder', parentId)
+    const f = await api.library.createFolder(c, 'New folder', parentId)
     bumpLibrary()
     setRenaming(f.id)
     if (parentId) setCollapsed((c) => new Set([...c].filter((x) => x !== parentId)))
@@ -152,9 +156,22 @@ export function LibrarySidebar() {
 
   return (
     <aside className="sidebar library">
+      {importing && <ImportFromClusterModal target={connection} onClose={() => setImporting(false)} onDone={() => (setImporting(false), bumpLibrary())} />}
       <div className="sidebar-head lib-head">
-        <div className="tree-title">Query library</div>
+        <div className="lib-title">
+          <div className="tree-title">Query library</div>
+          <div className="lib-owner" title={`Only ${connection.name}’s queries are shown here, and they only run on ${connection.name}`}>
+            <span className="dot" style={{ background: COLORS[connection.color] }} />
+            {connection.name}
+            {connection.isProd && <span className="pill tiny" style={{ color: 'var(--red)' }}>prod</span>}
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: 6 }}>
+          <button className="square-btn sm2" aria-label="Import queries from another cluster" title="Import queries from another cluster" onClick={() => setImporting(true)}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+            </svg>
+          </button>
           <button className="square-btn sm2" aria-label="New folder" title="New folder" onClick={() => newFolder(null)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 11v5M9.5 13.5h5" />

@@ -57,6 +57,8 @@ test('body autocomplete: spec keys and mapping fields', async () => {
   await suggest(page, 'city.name')
   await page.keyboard.press('Escape')
   await pasteInto(app, page, lastEditor(), 'POST listings/_search\n{"query":{"bool":{"fil')
+  // Same first line as before: wait for the new body, not just the request line, before asking for suggestions.
+  await expect(blocks().last()).toHaveAttribute('data-text', /"bool":\{"fil/)
   await page.keyboard.press('Meta+ArrowDown')
   await page.keyboard.press('End')
   await suggest(page, 'filter')
@@ -184,6 +186,11 @@ test('declined production confirmation never sends the request', async () => {
 test('tabs, blocks and the library survive a restart', async () => {
   await app.close()
   ;({ app, page } = await launch(dataDir))
+  await page.getByRole('button', { name: 'Query workspace' }).click()
+  // The last active cluster ("ES 9 as prod") has its own workspace — this cluster's blocks aren't there.
+  await expect(page.locator('.lib-owner')).toContainText('ES 9 as prod')
+  await expect(page.locator('.block-title', { hasText: 'Count active listings' })).toHaveCount(0)
+  await page.getByRole('tab', { name: /Docker ES 9/ }).click()
   await page.getByRole('button', { name: 'Query workspace' }).click()
   await expect(page.locator('.block-title', { hasText: 'Count active listings' })).toBeVisible()
   await expect(page.locator('.lib-folder', { hasText: 'Listings relevance' })).toBeVisible()

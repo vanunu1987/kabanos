@@ -17,6 +17,7 @@ import type { Db } from './db'
 
 interface QueryRow {
   id: string
+  connection_id: string | null
   folder_id: string | null
   title: string
   method: string
@@ -46,23 +47,36 @@ export class LibraryStore {
 
   // ---------- folders ----------
 
-  folders(): Folder[] {
-    return (this.db.prepare('SELECT id, parent_id, name, sort FROM folders ORDER BY sort, name').all() as Array<{ id: string; parent_id: string | null; name: string; sort: number }>).map(
-      (r) => ({ id: r.id, parentId: r.parent_id, name: r.name, sort: r.sort })
+  /** Folders of one cluster (`null`: folders whose cluster was deleted). */
+  folders(connectionId: string | null): Folder[] {
+    return (this.db.prepare('SELECT id, parent_id, name, sort, connection_id FROM folders WHERE connection_id IS ? ORDER BY sort, name').all(connectionId) as Array<{ id: string; parent_id: string | null; name: string; sort: number; connection_id: string | null }>).map(
+      (r) => ({ id: r.id, connectionId: r.connection_id, parentId: r.parent_id, name: r.name, sort: r.sort })
     )
   }
 
-  createFolder(name: string, parentId: string | null = null): Folder {
+  createFolder(connectionId: string, name: string, parentId: string | null = null): Folder {
+    if (parentId) this.assertFolderIn(parentId, connectionId)
     const id = randomUUID()
-    const sort = (this.db.prepare('SELECT COALESCE(MAX(sort), 0) + 1 AS s FROM folders WHERE parent_id IS ?').get(parentId) as { s: number }).s
-    this.db.prepare('INSERT INTO folders (id, parent_id, name, sort) VALUES (?, ?, ?, ?)').run(id, parentId, name.trim() || 'New folder', sort)
-    return { id, parentId, name: name.trim() || 'New folder', sort }
+    const sort = (this.db.prepare('SELECT COALESCE(MAX(sort), 0) + 1 AS s FROM folders WHERE parent_id IS ? AND connection_id IS ?').get(parentId, connectionId) as { s: number }).s
+    this.db.prepare('INSERT INTO folders (id, parent_id, name, sort, connection_id) VALUES (?, ?, ?, ?, ?)').run(id, parentId, name.trim() || 'New folder', sort, connectionId)
+    return { id, connectionId, parentId, name: name.trim() || 'New folder', sort }
+  }
+
+  private folderConnection(id: string): string | null | undefined {
+    return (this.db.prepare('SELECT connection_id FROM folders WHERE id = ?').get(id) as { connection_id: string | null } | undefined)?.connection_id
+  }
+
+  private assertFolderIn(folderId: string, connectionId: string | null): void {
+    const c = this.folderConnection(folderId)
+    if (c === undefined) throw new KabanosError('NOT_FOUND', 'Folder not found')
+    if (c !== connectionId) throw new KabanosError('VALIDATION', 'That folder belongs to another cluster')
   }
 
   updateFolder(id: string, patch: { name?: string; parentId?: string | null }): void {
     if (patch.parentId !== undefined && patch.parentId !== null && this.isDescendant(patch.parentId, id)) {
       throw new KabanosError('VALIDATION', "A folder can't be moved into itself")
     }
+    if (patch.parentId) this.assertFolderIn(patch.parentId, this.folderConnection(id) ?? null)
     if (patch.name !== undefined) this.db.prepare('UPDATE folders SET name = ? WHERE id = ?').run(patch.name.trim() || 'Untitled', id)
     if (patch.parentId !== undefined) this.db.prepare('UPDATE folders SET parent_id = ? WHERE id = ?').run(patch.parentId, id)
   }
@@ -89,10 +103,15 @@ export class LibraryStore {
 
   // ---------- queries ----------
 
-  queries(filter: LibraryFilter = { kind: 'all' }, search = ''): Query[] {
+  /** Queries of one cluster, or of every cluster with `connectionId: '*'` (routine pickers label them). */
+  queries(connectionId: string | null, filter: LibraryFilter = { kind: 'all' }, search = ''): Query[] {
     const { fts, tags } = parseSearch(search)
     const where: string[] = []
     const params: unknown[] = []
+    if (connectionId !== '*') {
+      where.push('q.connection_id IS ?')
+      params.push(connectionId)
+    }
     if (fts) {
       where.push('q.id IN (SELECT query_id FROM queries_fts WHERE queries_fts MATCH ?)')
       params.push(fts)
@@ -120,16 +139,18 @@ export class LibraryStore {
     return toQuery(row)
   }
 
-  createQuery(q: Partial<QueryPatch> & { method: HttpMethod; path: string }): Query {
+  createQuery(q: Partial<QueryPatch> & { connectionId: string; method: HttpMethod; path: string }): Query {
+    if (q.folderId) this.assertFolderIn(q.folderId, q.connectionId)
     const id = randomUUID()
     this.db
-      .prepare('INSERT INTO queries (id, folder_id, title, method, path, body, tags, pinned, pipeline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-      .run(id, q.folderId ?? null, q.title ?? '', q.method, q.path, q.body ?? '', JSON.stringify(normTags(q.tags)), q.pinned ? 1 : 0, q.pipeline ?? null)
+      .prepare('INSERT INTO queries (id, connection_id, folder_id, title, method, path, body, tags, pinned, pipeline) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(id, q.connectionId, q.folderId ?? null, q.title ?? '', q.method, q.path, q.body ?? '', JSON.stringify(normTags(q.tags)), q.pinned ? 1 : 0, q.pipeline ?? null)
     this.reindex(id)
     return this.query(id)
   }
 
   updateQuery(id: string, patch: QueryPatch): Query {
+    if (patch.folderId) this.assertFolderIn(patch.folderId, this.query(id).connectionId)
     const sets: string[] = []
     const params: unknown[] = []
     const col: Record<keyof QueryPatch, string> = { folderId: 'folder_id', title: 'title', method: 'method', path: 'path', body: 'body', tags: 'tags', pinned: 'pinned', pipeline: 'pipeline' }
@@ -152,10 +173,58 @@ export class LibraryStore {
     })()
   }
 
-  tags(): Array<{ tag: string; count: number }> {
+  tags(connectionId: string | null): Array<{ tag: string; count: number }> {
     return this.db
-      .prepare('SELECT lower(j.value) AS tag, COUNT(*) AS count FROM queries q, json_each(q.tags) j GROUP BY lower(j.value) ORDER BY count DESC, tag')
-      .all() as Array<{ tag: string; count: number }>
+      .prepare('SELECT lower(j.value) AS tag, COUNT(*) AS count FROM queries q, json_each(q.tags) j WHERE q.connection_id IS ? GROUP BY lower(j.value) ORDER BY count DESC, tag')
+      .all(connectionId) as Array<{ tag: string; count: number }>
+  }
+
+  /**
+   * Copy queries from another cluster into `connectionId` — on purpose, never by accident. The originals stay
+   * where they are; copies keep their folder path (folders with the same names are reused or created).
+   */
+  importQueries(connectionId: string, queryIds: string[]): { imported: number } {
+    let imported = 0
+    this.db.transaction(() => {
+      for (const id of queryIds) {
+        const src = this.query(id)
+        if (src.connectionId === connectionId) continue
+        const folderId = src.folderId ? this.ensureFolderPath(connectionId, this.folderPath(src.folderId)) : null
+        let pipeline = src.pipeline
+        if (pipeline) {
+          try {
+            pipeline = JSON.stringify({ ...(JSON.parse(pipeline) as object), connectionId })
+          } catch {
+            /* keep as is */
+          }
+        }
+        this.createQuery({ connectionId, folderId, title: src.title, method: src.method, path: src.path, body: src.body, tags: src.tags, pipeline })
+        imported++
+      }
+    })()
+    return { imported }
+  }
+
+  /** Folder names from the root down to `folderId`. */
+  private folderPath(folderId: string): string[] {
+    const names: string[] = []
+    let cur: string | null = folderId
+    for (let i = 0; cur && i < 100; i++) {
+      const f = this.db.prepare('SELECT name, parent_id FROM folders WHERE id = ?').get(cur) as { name: string; parent_id: string | null } | undefined
+      if (!f) break
+      names.unshift(f.name)
+      cur = f.parent_id
+    }
+    return names
+  }
+
+  private ensureFolderPath(connectionId: string, names: string[]): string | null {
+    let parent: string | null = null
+    for (const name of names) {
+      const existing = this.db.prepare('SELECT id FROM folders WHERE connection_id = ? AND parent_id IS ? AND name = ?').get(connectionId, parent, name) as { id: string } | undefined
+      parent = existing?.id ?? this.createFolder(connectionId, name, parent).id
+    }
+    return parent
   }
 
   private reindex(id: string): void {
@@ -166,22 +235,22 @@ export class LibraryStore {
 
   // ---------- workspace ----------
 
-  tabs(): WorkspaceTab[] {
-    const rows = this.db.prepare('SELECT * FROM workspace_tabs ORDER BY sort').all() as Array<{ id: string; name: string; sort: number; default_target: string | null; env_id: string | null }>
-    return rows.map((r) => ({ id: r.id, name: r.name, sort: r.sort, defaultTarget: r.default_target ?? undefined, envId: r.env_id ?? undefined }))
+  tabs(connectionId: string): WorkspaceTab[] {
+    const rows = this.db.prepare('SELECT * FROM workspace_tabs WHERE connection_id = ? ORDER BY sort').all(connectionId) as Array<{ id: string; name: string; sort: number; default_target: string | null; env_id: string | null; connection_id: string | null }>
+    return rows.map((r) => ({ id: r.id, connectionId: r.connection_id, name: r.name, sort: r.sort, defaultTarget: r.default_target ?? undefined, envId: r.env_id ?? undefined }))
   }
 
-  /** The first launch gets a "Scratch" tab so the workspace is never empty. */
-  ensureTab(): WorkspaceTab[] {
-    if (this.tabs().length === 0) this.createTab('Scratch')
-    return this.tabs()
+  /** Each cluster's workspace starts with a "Scratch" tab so it is never empty. */
+  ensureTab(connectionId: string): WorkspaceTab[] {
+    if (this.tabs(connectionId).length === 0) this.createTab(connectionId, 'Scratch')
+    return this.tabs(connectionId)
   }
 
-  createTab(name: string): WorkspaceTab {
+  createTab(connectionId: string, name: string): WorkspaceTab {
     const id = randomUUID()
-    const sort = (this.db.prepare('SELECT COALESCE(MAX(sort), 0) + 1 AS s FROM workspace_tabs').get() as { s: number }).s
-    this.db.prepare('INSERT INTO workspace_tabs (id, name, sort) VALUES (?, ?, ?)').run(id, name.trim() || 'Untitled', sort)
-    return this.tabs().find((t) => t.id === id)!
+    const sort = (this.db.prepare('SELECT COALESCE(MAX(sort), 0) + 1 AS s FROM workspace_tabs WHERE connection_id = ?').get(connectionId) as { s: number }).s
+    this.db.prepare('INSERT INTO workspace_tabs (id, name, sort, connection_id) VALUES (?, ?, ?, ?)').run(id, name.trim() || 'Untitled', sort, connectionId)
+    return this.tabs(connectionId).find((t) => t.id === id)!
   }
 
   updateTab(id: string, patch: { name?: string; defaultTarget?: string | null; envId?: string | null }): void {
@@ -213,6 +282,10 @@ export class LibraryStore {
   }
 
   addBlock(tabId: string, queryId: string, afterQueryId?: string): void {
+    const tab = this.db.prepare('SELECT connection_id FROM workspace_tabs WHERE id = ?').get(tabId) as { connection_id: string | null } | undefined
+    if (!tab) throw new KabanosError('NOT_FOUND', 'Tab not found')
+    const q = this.query(queryId)
+    if (q.connectionId !== tab.connection_id) throw new KabanosError('VALIDATION', 'That query belongs to another cluster — import it first')
     const exists = this.db.prepare('SELECT 1 FROM workspace_blocks WHERE tab_id = ? AND query_id = ?').get(tabId, queryId)
     if (exists) return
     const ids = this.blocks(tabId).map((b) => b.queryId)
@@ -265,13 +338,13 @@ export class LibraryStore {
     })()
   }
 
-  history(search = '', limit = 200): HistoryEntry[] {
+  history(connectionId: string, search = '', limit = 200): HistoryEntry[] {
     const { fts } = parseSearch(search)
     const sql = fts
-      ? 'SELECT h.* FROM history h WHERE h.id IN (SELECT rowid FROM history_fts WHERE history_fts MATCH ?) ORDER BY h.id DESC LIMIT ?'
-      : 'SELECT h.* FROM history h ORDER BY h.id DESC LIMIT ?'
+      ? 'SELECT h.* FROM history h WHERE h.connection_id = ? AND h.id IN (SELECT rowid FROM history_fts WHERE history_fts MATCH ?) ORDER BY h.id DESC LIMIT ?'
+      : 'SELECT h.* FROM history h WHERE h.connection_id = ? ORDER BY h.id DESC LIMIT ?'
     try {
-      const rows = (fts ? this.db.prepare(sql).all(fts, limit) : this.db.prepare(sql).all(limit)) as HistoryRow[]
+      const rows = (fts ? this.db.prepare(sql).all(connectionId, fts, limit) : this.db.prepare(sql).all(connectionId, limit)) as HistoryRow[]
       return rows.map((r) => toHistory(r, false))
     } catch (err) {
       if (fts && /fts5|syntax/i.test((err as Error).message)) return []
@@ -380,6 +453,7 @@ function toHistory(r: HistoryRow, withResponse: boolean): HistoryEntry {
 function toQuery(r: QueryRow): Query {
   return {
     id: r.id,
+    connectionId: r.connection_id,
     folderId: r.folder_id,
     title: r.title,
     method: r.method as HttpMethod,

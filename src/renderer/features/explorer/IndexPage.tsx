@@ -52,7 +52,7 @@ export function IndexPage({ conn, name }: { conn: ConnectionConfig; name: string
             </button>
           ))}
           <div className="spacer" />
-          <button className="btn md" onClick={() => openInWorkspace(name)}>
+          <button className="btn md" onClick={() => openInWorkspace(conn.id, name)}>
             Open in workspace
           </button>
           <button className="btn md primary" onClick={() => openQuery(conn.id, name)} disabled={closed}>
@@ -98,7 +98,7 @@ export function IndexPage({ conn, name }: { conn: ConnectionConfig; name: string
             ) : tab === 'shards' ? (
               <Shards d={d} />
             ) : (
-              <SavedQueries name={name} aliases={d.aliases.map((a) => a.name)} />
+              <SavedQueries connectionId={conn.id} name={name} aliases={d.aliases.map((a) => a.name)} />
             )
           }
         </Async>
@@ -111,21 +111,22 @@ export function IndexPage({ conn, name }: { conn: ConnectionConfig; name: string
 }
 
 /** New workspace block targeting this index (sets it as the tab's default target). */
-export async function openInWorkspace(target: string): Promise<void> {
+export async function openInWorkspace(connectionId: string, target: string): Promise<void> {
   const ws = useWorkspace.getState()
   useApp.getState().setView('workspace')
-  if (!ws.activeTab) await ws.load()
+  // The block belongs to this cluster's workspace, whichever one was shown before.
+  await ws.load(connectionId)
   await ws.setDefaultTarget(target)
   await ws.newBlock({ method: 'POST', path: '_search', body: '{\n  "size": 20,\n  "query": {\n    "match_all": {}\n  }\n}' })
 }
 
 /** Library queries whose path targets this index or one of its aliases. */
-function SavedQueries({ name, aliases }: { name: string; aliases: string[] }) {
+function SavedQueries({ connectionId, name, aliases }: { connectionId: string; name: string; aliases: string[] }) {
   const version = useWorkspace((s) => s.libraryVersion)
   const q = useQuery({
-    queryKey: ['saved-for', name, version],
+    queryKey: ['saved-for', connectionId, name, version],
     queryFn: async () => {
-      const all = await api.library.queries({ kind: 'all' })
+      const all = await api.library.queries(connectionId, { kind: 'all' })
       const targets = new Set([name, ...aliases])
       return all.filter((x) => x.folderId !== null && x.path.split(/[/?]/)[0]!.split(',').some((t) => targets.has(t)))
     }
@@ -133,7 +134,7 @@ function SavedQueries({ name, aliases }: { name: string; aliases: string[] }) {
   const open = async (id: string) => {
     useApp.getState().setView('workspace')
     const ws = useWorkspace.getState()
-    if (!ws.activeTab) await ws.load()
+    await ws.load(connectionId)
     await ws.openQuery(id)
   }
   return (

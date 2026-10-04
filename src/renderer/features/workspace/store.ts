@@ -12,6 +12,8 @@ export interface RunState {
 }
 
 interface WorkspaceStore {
+  /** The cluster whose workspace is shown — tabs, blocks and the library all belong to it. */
+  connectionId?: string
   tabs: WorkspaceTab[]
   activeTab?: string
   blocks: Record<string, Array<Block & { query: Query }>>
@@ -25,7 +27,8 @@ interface WorkspaceStore {
   /** A just-created block whose editor should take focus once mounted. */
   focusBlock?: string
 
-  load(): Promise<void>
+  /** Show a cluster's workspace (or reload the current one). */
+  load(connectionId?: string): Promise<void>
   selectTab(id: string): Promise<void>
   loadBlocks(tabId: string): Promise<void>
   createTab(name?: string): Promise<void>
@@ -52,6 +55,7 @@ interface WorkspaceStore {
 }
 
 const saveTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const lastTab = new Map<string, string>()
 
 const DEFAULT_NEW = { method: 'GET' as const, path: '_search', body: '{\n  "query": {\n    "match_all": {}\n  }\n}' }
 
@@ -63,13 +67,20 @@ export const useWorkspace = create<WorkspaceStore>((set, get) => ({
   selected: new Set(),
   libraryVersion: 0,
 
-  load: async () => {
-    const tabs = await api.workspace.tabs()
-    const active = get().activeTab && tabs.some((t) => t.id === get().activeTab) ? get().activeTab! : tabs[0]!.id
-    set({ tabs })
+  load: async (connectionId = get().connectionId ?? useApp.getState().activeTab ?? undefined) => {
+    if (!connectionId) return set({ connectionId: undefined, tabs: [], activeTab: undefined, activeBlock: undefined, selected: new Set() })
+    const switching = connectionId !== get().connectionId
+    const tabs = await api.workspace.tabs(connectionId)
+    // Remember the open tab per cluster, so switching back lands where you were.
+    const remembered = switching ? lastTab.get(connectionId) : get().activeTab
+    const active = remembered && tabs.some((t) => t.id === remembered) ? remembered : tabs[0]!.id
+    set({ connectionId, tabs, ...(switching ? { activeBlock: undefined, selected: new Set<string>() } : {}) })
     await get().selectTab(active)
+    if (switching) get().bumpLibrary()
   },
   selectTab: async (id) => {
+    const c = get().connectionId
+    if (c) lastTab.set(c, id)
     set({ activeTab: id, selected: new Set() })
     await get().loadBlocks(id)
   },
@@ -79,7 +90,9 @@ export const useWorkspace = create<WorkspaceStore>((set, get) => ({
   },
   createTab: async (name) => {
     const n = name ?? `Tab ${get().tabs.length + 1}`
-    const tab = await api.workspace.createTab(n)
+    const c = get().connectionId
+    if (!c) return
+    const tab = await api.workspace.createTab(c, n)
     set((s) => ({ tabs: [...s.tabs, tab] }))
     await get().selectTab(tab.id)
   },
@@ -89,7 +102,7 @@ export const useWorkspace = create<WorkspaceStore>((set, get) => ({
   },
   closeTab: async (id) => {
     await api.workspace.removeTab(id)
-    const tabs = await api.workspace.tabs()
+    const tabs = await api.workspace.tabs(get().connectionId!)
     set({ tabs })
     await get().selectTab(tabs.find((t) => t.id === get().activeTab)?.id ?? tabs[0]!.id)
     get().bumpLibrary()
@@ -110,7 +123,9 @@ export const useWorkspace = create<WorkspaceStore>((set, get) => ({
   newBlock: async (init, after) => {
     const tabId = get().activeTab
     if (!tabId) return undefined
-    const q = await api.library.createQuery({ ...DEFAULT_NEW, ...init, title: init?.title ?? '' })
+    const connectionId = get().connectionId
+    if (!connectionId) return undefined
+    const q = await api.library.createQuery({ ...DEFAULT_NEW, ...init, title: init?.title ?? '', connectionId })
     await api.workspace.addBlock(tabId, q.id, after)
     set({ focusBlock: q.id })
     await get().loadBlocks(tabId)
@@ -131,7 +146,7 @@ export const useWorkspace = create<WorkspaceStore>((set, get) => ({
     const tabId = get().activeTab
     if (!tabId) return 0
     for (const r of reqs) {
-      const q = await api.library.createQuery({ title: r.title ?? '', method: r.method, path: r.path, body: r.body, folderId })
+      const q = await api.library.createQuery({ title: r.title ?? '', method: r.method, path: r.path, body: r.body, folderId, connectionId: get().connectionId! })
       await api.workspace.addBlock(tabId, q.id)
     }
     // Imported blocks start collapsed so a long Kibana export stays scannable.
@@ -194,7 +209,8 @@ export const useWorkspace = create<WorkspaceStore>((set, get) => ({
     }),
 
   run: async (queryId) => {
-    const connectionId = useApp.getState().activeTab
+    // Always the workspace's own cluster — the main process refuses a query from another one anyway.
+    const connectionId = get().connectionId
     if (!connectionId) {
       useApp.getState().showToast('Open a connection first (Connections → Save & connect)')
       return false

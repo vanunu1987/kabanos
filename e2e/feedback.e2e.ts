@@ -50,6 +50,8 @@ test('⌘I auto-indents the block', async () => {
 test('picking "term" inserts its structure and then suggests fields', async () => {
   const ed = page.locator('.block').nth(1).locator('.monaco-editor')
   await pasteInto(app, page, ed, 'POST listings-v7/_search\n{\n  "query": {\n    "te\n  }\n}')
+  // pasteInto only checks the first line, which may already be there: wait for the whole body.
+  await expect(page.locator('.block').nth(1)).toHaveAttribute('data-text', /"query": \{\n {4}"te\n/)
   await page.keyboard.press('Meta+ArrowUp')
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('ArrowDown')

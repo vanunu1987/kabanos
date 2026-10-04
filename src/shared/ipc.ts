@@ -35,17 +35,20 @@ export interface KabanosApi {
     run(req: ClusterRequest & { queryId?: string; envId?: string }): Promise<ClusterResponse & { resolvedPath: string }>
   }
   library: {
-    folders(): Promise<Folder[]>
-    createFolder(name: string, parentId?: string | null): Promise<Folder>
+    folders(connectionId: string | null): Promise<Folder[]>
+    createFolder(connectionId: string, name: string, parentId?: string | null): Promise<Folder>
     updateFolder(id: string, patch: { name?: string; parentId?: string | null }): Promise<void>
     removeFolder(id: string): Promise<void>
-    queries(filter?: LibraryFilter, search?: string): Promise<Query[]>
+    /** Queries of one cluster; `'*'` lists every cluster's (routine pickers, import dialog). */
+    queries(connectionId: string | null, filter?: LibraryFilter, search?: string): Promise<Query[]>
     query(id: string): Promise<Query>
-    createQuery(q: QueryPatch & Pick<Query, 'method' | 'path'>): Promise<Query>
+    createQuery(q: QueryPatch & Pick<Query, 'method' | 'path'> & { connectionId: string }): Promise<Query>
+    /** Copy queries from other clusters into `connectionId` (originals stay where they are). */
+    importQueries(connectionId: string, queryIds: string[]): Promise<{ imported: number }>
     updateQuery(id: string, patch: QueryPatch): Promise<Query>
     removeQuery(id: string): Promise<void>
-    tags(): Promise<Array<{ tag: string; count: number }>>
-    history(search?: string, limit?: number): Promise<HistoryEntry[]>
+    tags(connectionId: string): Promise<Array<{ tag: string; count: number }>>
+    history(connectionId: string, search?: string, limit?: number): Promise<HistoryEntry[]>
     responses(queryId: string): Promise<HistoryEntry[]>
     clearHistory(): Promise<void>
   }
@@ -55,8 +58,8 @@ export interface KabanosApi {
     setTheme(pref: 'dark' | 'light' | 'system'): Promise<void>
   }
   workspace: {
-    tabs(): Promise<WorkspaceTab[]>
-    createTab(name: string): Promise<WorkspaceTab>
+    tabs(connectionId: string): Promise<WorkspaceTab[]>
+    createTab(connectionId: string, name: string): Promise<WorkspaceTab>
     updateTab(id: string, patch: { name?: string; defaultTarget?: string | null; envId?: string | null }): Promise<void>
     removeTab(id: string): Promise<void>
     blocks(tabId: string): Promise<Array<Block & { query: Query }>>

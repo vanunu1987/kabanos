@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import type { Folder } from '@shared/library'
 import { api } from '../../api'
 import { Modal } from '../../components/Modal'
+import { useApp } from '../../store'
 
 /** Title + folder + tags picker used by "Save to library" (Index view) and "Save to folder…" (Workspace). */
-export function SaveQueryModal({ initial, onSave, onClose }: { initial: { title: string; folderId: string | null; tags: string[] }; onSave(v: { title: string; folderId: string | null; tags: string[] }): void; onClose(): void }) {
+export function SaveQueryModal({ connectionId, initial, onSave, onClose }: { connectionId: string; initial: { title: string; folderId: string | null; tags: string[] }; onSave(v: { title: string; folderId: string | null; tags: string[] }): void; onClose(): void }) {
+  const conn = useApp((s) => s.connections.find((c) => c.id === connectionId))
   const [folders, setFolders] = useState<Folder[]>([])
   const [title, setTitle] = useState(initial.title)
   const [folderId, setFolderId] = useState<string | null>(initial.folderId)
@@ -12,22 +14,22 @@ export function SaveQueryModal({ initial, onSave, onClose }: { initial: { title:
   const [newFolder, setNewFolder] = useState('')
 
   useEffect(() => {
-    void api.library.folders().then((f) => {
+    void api.library.folders(connectionId).then((f) => {
       setFolders(f)
       if (!initial.folderId && f[0]) setFolderId(f[0].id)
     })
-  }, [initial.folderId])
+  }, [initial.folderId, connectionId])
 
   const save = async () => {
     let fid = folderId
-    if (newFolder.trim()) fid = (await api.library.createFolder(newFolder.trim(), null)).id
+    if (newFolder.trim()) fid = (await api.library.createFolder(connectionId, newFolder.trim(), null)).id
     onSave({ title: title.trim(), folderId: fid, tags: tags.split(/[\s,]+/).map((t) => t.replace(/^#/, '')).filter(Boolean) })
   }
   const paths = folderPaths(folders)
 
   return (
     <Modal
-      title="Save to library"
+      title={conn ? `Save to ${conn.name}’s library` : 'Save to library'}
       onClose={onClose}
       actions={
         <>

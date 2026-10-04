@@ -373,10 +373,11 @@ function QueryTab({ conn, target, state, patch }: { conn: ConnectionConfig; targ
       {exporting && <ExportModal conn={conn} target={target} body={/_search/.test(state.endpoint) ? state.body : undefined} pageHits={hits} definition={false} onClose={() => setExporting(false)} />}
       {saving && (
         <SaveQueryModal
+          connectionId={conn.id}
           initial={{ title: '', folderId: null, tags: [] }}
           onClose={() => setSaving(false)}
           onSave={async (v) => {
-            await api.library.createQuery({ ...v, method: state.method, path: `${target}/${state.endpoint.replace(/^\/+/, '')}`, body: bodyAllowed ? state.body : '' })
+            await api.library.createQuery({ ...v, connectionId: conn.id, method: state.method, path: `${target}/${state.endpoint.replace(/^\/+/, '')}`, body: bodyAllowed ? state.body : '' })
             useWorkspace.getState().bumpLibrary()
             setSaving(false)
             useApp.getState().showToast(`Saved “${v.title}” to the library`)

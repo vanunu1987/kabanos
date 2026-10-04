@@ -74,6 +74,14 @@ export function registerIpc(connections: ConnectionManager, metadata: MetadataSe
 
     /** Run a request from the workspace / index view: {{vars}} resolved here (secrets never reach the renderer), history recorded. */
     'cluster.run': typed([s.runRequest], async ({ queryId, envId, ...req }) => {
+      // A saved query only runs on its own cluster: running a dev query on prod has to be a deliberate import.
+      if (queryId) {
+        const q = library.query(queryId)
+        if (q.connectionId && q.connectionId !== req.connectionId) {
+          const name = (id: string) => connections.list().find((c) => c.id === id)?.name ?? 'another cluster'
+          throw new KabanosError('VALIDATION', `“${q.title || q.path}” belongs to ${name(q.connectionId)}. Import it into ${name(req.connectionId)} to run it there.`)
+        }
+      }
       const vars = library.resolveVars(envId)
       const resolved = { ...req, path: substituteVars(req.path, vars), body: req.body === undefined ? undefined : substituteVars(req.body, vars) }
       const unresolved = /\{\{\s*[\w.-]+\s*\}\}/.exec(`${resolved.path} ${resolved.body ?? ''}`)
@@ -91,21 +99,25 @@ export function registerIpc(connections: ConnectionManager, metadata: MetadataSe
       }
     }),
 
-    'library.folders': () => library.folders(),
-    'library.createFolder': typed([z.string().max(200), z.string().nullable().optional()], (name, parentId) => library.createFolder(name, parentId ?? null)),
+    'library.folders': typed([z.string().nullable()], (connectionId) => library.folders(connectionId)),
+    'library.createFolder': typed([z.string(), z.string().max(200), z.string().nullable().optional()], (connectionId, name, parentId) => library.createFolder(connectionId, name, parentId ?? null)),
     'library.updateFolder': typed([z.string(), z.object({ name: z.string().max(200).optional(), parentId: z.string().nullable().optional() })], (id, patch) => library.updateFolder(id, patch)),
     'library.removeFolder': typed([z.string()], (id) => library.removeFolder(id)),
-    'library.queries': typed([s.libraryFilter.optional(), z.string().max(500).optional()], (filter, search) => library.queries(filter, search)),
+    'library.queries': typed([z.string().nullable(), s.libraryFilter.optional(), z.string().max(500).optional()], (connectionId, filter, search) => library.queries(connectionId, filter, search)),
     'library.query': typed([z.string()], (id) => library.query(id)),
-    'library.createQuery': typed([s.queryPatch.extend({ method: s.queryPatch.shape.method.unwrap(), path: z.string().max(8192) })], (q) => library.createQuery(q)),
+    'library.createQuery': typed([s.queryPatch.extend({ connectionId: z.string(), method: s.queryPatch.shape.method.unwrap(), path: z.string().max(8192) })], (q) => library.createQuery(q)),
+    'library.importQueries': typed([z.string(), z.array(z.string()).max(500)], (connectionId, ids) => {
+      connections.get(connectionId) // must be a saved connection
+      return library.importQueries(connectionId, ids)
+    }),
     'library.updateQuery': typed([z.string(), s.queryPatch], (id, patch) => library.updateQuery(id, patch)),
     'library.removeQuery': typed([z.string()], (id) => library.removeQuery(id)),
-    'library.tags': () => library.tags(),
-    'library.history': typed([z.string().max(500).optional(), z.number().int().max(2000).optional()], (search, limit) => library.history(search, limit)),
+    'library.tags': typed([z.string()], (connectionId) => library.tags(connectionId)),
+    'library.history': typed([z.string(), z.string().max(500).optional(), z.number().int().max(2000).optional()], (connectionId, search, limit) => library.history(connectionId, search, limit)),
     'library.responses': typed([z.string()], (id) => library.responses(id)),
 
-    'workspace.tabs': () => library.ensureTab(),
-    'workspace.createTab': typed([z.string().max(100)], (name) => library.createTab(name)),
+    'workspace.tabs': typed([z.string()], (connectionId) => library.ensureTab(connectionId)),
+    'workspace.createTab': typed([z.string(), z.string().max(100)], (connectionId, name) => library.createTab(connectionId, name)),
     'workspace.updateTab': typed([z.string(), z.object({ name: z.string().max(100).optional(), defaultTarget: z.string().nullable().optional(), envId: z.string().nullable().optional() })], (id, patch) => library.updateTab(id, patch)),
     'workspace.removeTab': typed([z.string()], (id) => library.removeTab(id)),
     'workspace.blocks': typed([z.string()], (tabId) => library.blocks(tabId)),

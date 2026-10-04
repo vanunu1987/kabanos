@@ -59,7 +59,7 @@ function chips(step: RoutineStep, queryTitle?: string, connName?: string, isAgg?
 export function StepCard({ routine, step, index, result, last, paused }: { routine: Routine; step: RoutineStep; index: number; result?: StepResult; last: boolean; paused: boolean }) {
   const connections = useApp((s) => s.connections)
   const editing = useRoutines((s) => s.editingStep === step.id)
-  const library = useQuery({ queryKey: ['library-all'], queryFn: () => api.library.queries({ kind: 'all' }), staleTime: 5000 })
+  const library = useQuery({ queryKey: ['library-all'], queryFn: () => api.library.queries('*', { kind: 'all' }), staleTime: 5000 })
   const query = step.queryRef ? library.data?.find((q) => q.id === step.queryRef) : undefined
   const conn = connections.find((c) => c.id === (step.connectionId ?? routine.defaultConnectionId))
   const v = visual(step, result, !!conn?.isProd)

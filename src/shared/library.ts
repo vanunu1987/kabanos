@@ -3,6 +3,8 @@ import type { HttpMethod } from './types'
 /** A saved request. Workspace blocks are queries opened in a tab; unfiled ones have `folderId: null`. */
 export interface Query {
   id: string
+  /** The cluster (saved connection) this query belongs to — it only runs there. */
+  connectionId: string | null
   folderId: string | null
   title: string
   method: HttpMethod
@@ -23,6 +25,7 @@ export type QueryPatch = Partial<Pick<Query, 'folderId' | 'title' | 'method' | '
 
 export interface Folder {
   id: string
+  connectionId: string | null
   parentId: string | null
   name: string
   sort: number
@@ -30,6 +33,7 @@ export interface Folder {
 
 export interface WorkspaceTab {
   id: string
+  connectionId: string | null
   name: string
   sort: number
   defaultTarget?: string

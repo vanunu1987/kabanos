@@ -202,8 +202,10 @@ function VarChip({ name, value, onChange, onRemove }: { name: string; value: str
 
 function AddStep({ routine, onDone }: { routine: Routine; onDone(): void }) {
   const [search, setSearch] = useState('')
-  const lib = useQuery({ queryKey: ['library-search', search], queryFn: () => api.library.queries({ kind: 'all' }, search) })
+  const lib = useQuery({ queryKey: ['library-search', search], queryFn: () => api.library.queries('*', { kind: 'all' }, search) })
   // Unfiled items are workspace scratch blocks; saved aggregation pipelines count even when unfiled.
+  const connections = useApp((s) => s.connections)
+  const connName = (id: string | null) => connections.find((c) => c.id === id)?.name ?? 'no cluster'
   const saved = (lib.data ?? []).filter((q) => q.folderId !== null || q.pipeline).slice(0, 8)
   const add = async (step: Parameters<ReturnType<typeof useRoutines.getState>['addSteps']>[1][number]) => {
     await useRoutines.getState().addSteps(routine.id, [step])
@@ -229,7 +231,9 @@ function AddStep({ routine, onDone }: { routine: Routine; onDone(): void }) {
           {q.pipeline ? <span className="lib-method mono lib-agg">∑</span> : <span className={`lib-method mono m-${q.method.toLowerCase()}`}>{q.method}</span>}
           <span className="lib-text">
             <span className="lib-name">{q.pipeline ? `Run aggregation pipeline “${q.title}”` : q.title || q.path}</span>
-            <span className="lib-meta mono">{q.pipeline ? `${q.path} · rows → steps.<id>.rows` : q.path}</span>
+            <span className="lib-meta mono">
+              {connName(q.connectionId)} · {q.pipeline ? `${q.path} · rows → steps.<id>.rows` : q.path}
+            </span>
           </span>
         </button>
       ))}

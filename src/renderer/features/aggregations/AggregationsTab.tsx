@@ -158,8 +158,8 @@ function Builder({ conn, target, docs, tabKey_: key }: { conn: ConnectionConfig;
     useApp.getState().showToast('Copied as cURL (credentials not included)')
   }
   const openInWorkspace = async (path: string, text: string, title: string) => {
-    const ws = useWorkspace.getState()
-    if (!ws.activeTab) await ws.load()
+    // Into this cluster's workspace, whichever one was shown before.
+    await useWorkspace.getState().load(conn.id)
     await useWorkspace.getState().newBlock({ title, method: 'POST', path, body: text })
     useApp.getState().setView('workspace')
   }
@@ -379,11 +379,12 @@ function Builder({ conn, target, docs, tabKey_: key }: { conn: ConnectionConfig;
       )}
       {saving && (
         <SaveQueryModal
+          connectionId={conn.id}
           initial={{ title: p.name === 'Untitled pipeline' ? '' : p.name, folderId: null, tags: p.tags }}
           onClose={() => setSaving(false)}
           onSave={async (v) => {
             const pipeline: Pipeline = { ...p, name: v.title || p.name, tags: v.tags, connectionId: conn.id, target }
-            const q = await api.library.createQuery({ ...v, title: pipeline.name, method: 'POST', path: `${target}/_search`, body, pipeline: JSON.stringify(pipeline) })
+            const q = await api.library.createQuery({ ...v, connectionId: conn.id, title: pipeline.name, method: 'POST', path: `${target}/_search`, body, pipeline: JSON.stringify(pipeline) })
             patch(key, { savedId: q.id, pipeline })
             useWorkspace.getState().bumpLibrary()
             setSaving(false)

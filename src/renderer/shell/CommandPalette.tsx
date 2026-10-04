@@ -50,7 +50,8 @@ export function CommandPalette({ onClose }: { onClose(): void }) {
   const listRef = useRef<HTMLDivElement>(null)
   const { connections, activeTab } = useApp()
   const app = useApp.getState()
-  const queries = useQuery({ queryKey: ['palette-queries'], queryFn: () => api.library.queries({ kind: 'all' }) })
+  // Only the active cluster's saved queries: a query never opens on another cluster's workspace.
+  const queries = useQuery({ queryKey: ['palette-queries', activeTab], queryFn: () => api.library.queries(activeTab, { kind: 'all' }), enabled: !!activeTab })
   const routines = useQuery({ queryKey: ['palette-routines'], queryFn: () => api.routines.list() })
   const tree = activeTab ? queryClient.getQueryData<ClusterTree>(['tree', activeTab]) : undefined
 
@@ -75,7 +76,7 @@ export function CommandPalette({ onClose }: { onClose(): void }) {
           run: close(async () => {
             app.setView('workspace')
             const ws = useWorkspace.getState()
-            if (!ws.activeTab) await ws.load()
+            await ws.load(x.connectionId ?? activeTab ?? undefined)
             await ws.openQuery(x.id)
           })
         })
